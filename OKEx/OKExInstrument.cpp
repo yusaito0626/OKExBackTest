@@ -120,6 +120,126 @@ OKExOrder* book::removeOrder(std::string baseOrdId)
     }
 }
 
+OKExOrder* book::getTopOrder(void)
+{
+    std::map<std::string, OKExOrder*>::iterator it;
+    std::map<std::string, OKExOrder*>::iterator itend = liveOrders.end();
+    long long ts = 0;
+    OKExOrder* ord = nullptr;
+    for (it = liveOrders.begin(); it != itend; ++it)
+    {
+        if (ts == 0)
+        {
+            ts = it->second->orgTime;
+            ord = it->second;
+        }
+        else if (ts > it->second->orgTime)
+        {
+            ts = it->second->orgTime;
+            ord = it->second;
+        }
+    }
+    return ord;
+}
+OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price has been changed
+{
+    std::map<std::string, OKExOrder*>::iterator ordit = liveOrders.find(tkt->clOrdId);
+    OKExOrder* output = nullptr;
+    if (ordit != liveOrders.end())
+    {
+        switch (ordit->second->status)
+        {
+        case OKExEnums::orderState::WAIT_NEW:
+            ordit->second->status = OKExEnums::orderState::LIVE;
+            ordit->second->live = true;
+            break;
+        case OKExEnums::orderState::WAIT_AMD:
+            ordit->second->sz = ordit->second->newSz;
+            ordit->second->openSz = ordit->second->sz - ordit->second->execSz;
+            if (ordit->second->openSz <= 0)
+            {
+                ordit->second->openSz = 0;
+                ordit->second->live = false;
+                if (ordit->second->execSz > 0)
+                {
+                    ordit->second->status = OKExEnums::orderState::FILLED;
+                }
+                else
+                {
+                    ordit->second->status = OKExEnums::orderState::CANCELED;
+                }
+                liveOrders.erase(ordit->first);
+            }
+            else
+            {
+                if (ordit->second->execSz > 0)
+                {
+                    ordit->second->status = OKExEnums::orderState::PARTIALLY_FILLED;
+                }
+                else
+                {
+                    ordit->second->status = OKExEnums::orderState::LIVE;
+                }
+                if (ordit->second->px != ordit->second->newPx)
+                {
+                    ordit->second->px = ordit->second->newPx;
+                    output = ordit->second;
+                    liveOrders.erase(ordit->first);
+                }
+            }
+            break;
+        case OKExEnums::orderState::WAIT_CAN:
+            ordit->second->sz = ordit->second->execSz;
+            ordit->second->openSz = 0;
+            ordit->second->live = false;
+            if (ordit->second->execSz > 0)
+            {
+                ordit->second->status = OKExEnums::orderState::FILLED;
+            }
+            else
+            {
+                ordit->second->status = OKExEnums::orderState::CANCELED;
+            }
+            liveOrders.erase(ordit->first);
+            break;
+        default:
+            break;
+        }
+    }
+    return output;
+}
+void book::executeOrder(dataOrder* trd)
+{
+    std::map<std::string, OKExOrder*>::iterator ordit = liveOrders.find(trd->clOrdId);
+    if (ordit != liveOrders.end())
+    {
+        ordit->second->lastSz = trd->fillSz;
+        ordit->second->execSz += trd->fillSz;
+        ordit->second->openSz -= trd->fillSz;
+        ordit->second->lastPx = trd->px;
+        ordit->second->avgPx = trd->avgPx;
+        switch (ordit->second->status)
+        {
+        case OKExEnums::orderState::WAIT_NEW:
+        case OKExEnums::orderState::WAIT_AMD:
+        case OKExEnums::orderState::WAIT_CAN:
+            if (trd->state == OKExEnums::orderState::FILLED)
+            {
+                ordit->second->status = trd->state;
+            }
+            break;
+        default:
+            ordit->second->status = trd->state;
+            break;
+        }
+        
+        if (ordit->second->status == OKExEnums::orderState::CANCELED || ordit->second->status == OKExEnums::orderState::FILLED)
+        {
+            liveOrders.erase(ordit->first);
+        }
+    }
+}
+
 void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
 {
 	instId = mp["instId"];

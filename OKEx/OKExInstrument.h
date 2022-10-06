@@ -26,7 +26,9 @@ public:
 	void init(void);
 	void addOrder(OKExOrder* ord);
 	OKExOrder* removeOrder(std::string baseOrdId);
-	//updateOrder?
+	OKExOrder* getTopOrder(void);
+	OKExOrder* updateOrder(dataOrder* tkt);
+	void executeOrder(dataOrder* trd);
 
 };
 

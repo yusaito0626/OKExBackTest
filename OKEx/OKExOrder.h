@@ -11,6 +11,7 @@ public:
 	long long orgTime;
 	long long updatedTime;
 
+	bool live;
 	OKExEnums::orderState status;
 	OKExEnums::side side;
 	int px;
@@ -21,6 +22,8 @@ public:
 	double avgPx;
 	int lastPx;
 	double lastSz;
+	int newPx;
+	double newSz;
 
 	OKExOrder();
 	OKExOrder(const OKExOrder& obj);

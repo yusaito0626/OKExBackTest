@@ -38,7 +38,7 @@ void OKExParser::parsePushData(std::string str, OKExMktMsg* msg)
 								std::list<std::string> bklst;
 								if (json::deserialize(*itask, bklst))
 								{
-									book bk;
+									msgbook bk;
 									std::list<std::string>::iterator elem = bklst.begin();
 									bk.px = stod(*elem);
 									std::next(elem);
@@ -59,7 +59,7 @@ void OKExParser::parsePushData(std::string str, OKExMktMsg* msg)
 								std::list<std::string> bklst;
 								if (json::deserialize(*itbid, bklst))
 								{
-									book bk;
+									msgbook bk;
 									std::list<std::string>::iterator elem = bklst.begin();
 									bk.px = stod(*elem);
 									std::next(elem);

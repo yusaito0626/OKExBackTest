@@ -2,20 +2,20 @@
 
 #include "includes.h"
 #include "OKExEnums.h"
-struct book
+struct msgbook
 {
     double px;
     double sz;
     double liqOrd;
     int numOfOrd;
-    book();
-    ~book();
+    msgbook();
+    ~msgbook();
     void init(void);
 };
 struct dataBooks
 {
-    std::list<book> bids;
-    std::list<book> asks;
+    std::list<msgbook> bids;
+    std::list<msgbook> asks;
     long long ts;
     int checkSum;
 

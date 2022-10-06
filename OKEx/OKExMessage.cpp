@@ -1,6 +1,6 @@
 #include "OKExMessage.h"
 
-book::book()
+msgbook::msgbook()
 {
     px = 0.0;
     sz = 0.0;
@@ -8,12 +8,12 @@ book::book()
     numOfOrd = 0;
 }
 
-book::~book()
+msgbook::~msgbook()
 {
 
 }
 
-void book::init(void)
+void msgbook::init(void)
 {
     px = 0.0;
     sz = 0.0;

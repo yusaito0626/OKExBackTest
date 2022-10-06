@@ -20,8 +20,13 @@ public:
 	long long ts;
 
 	book();
+	book(const book& obj);
 	~book();
+	void updateBook(OKExEnums::side sd,msgbook msg);
 	void init(void);
+	void addOrder(OKExOrder* ord);
+	OKExOrder* removeOrder(std::string baseOrdId);
+	//updateOrder?
 
 };
 
@@ -103,6 +108,7 @@ public:
 	double minSz;
 	OKExEnums::insState state;
 	double tickSz;
+	int priceUnit;
 
 	bool isTrading;
 
@@ -151,8 +157,11 @@ public:
 
 	void setInstrumentData(std::map<std::string, std::string> mp);
 	void setParams(std::list<std::string> params);
-	void updateTrade(dataTrades* trade);
-	void updateBooks(dataBooks* books);
+	void updateTrade(OKExMktMsg* msg);
+	void initializeBooks(OKExMktMsg* msg, int depth);
+	bool updateBooks(OKExMktMsg* msg);
+	std::map<int, book>::iterator findBest(int pr, OKExEnums::side side);
+	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* ord);
 
 	void updateRings(void);

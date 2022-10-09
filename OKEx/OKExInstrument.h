@@ -28,7 +28,7 @@ public:
 	OKExOrder* removeOrder(std::string baseOrdId);
 	OKExOrder* getTopOrder(void);
 	OKExOrder* updateOrder(dataOrder* tkt);
-	void executeOrder(dataOrder* trd);
+	bool executeOrder(dataOrder* trd);
 
 };
 
@@ -122,8 +122,8 @@ public:
 	position shortPosition;
 	double netPosition;
 
-	std::map<std::string, OKExOrder*>* odrList;
-	std::map<std::string, OKExOrder*>* liveOdrList;
+	std::map<std::string, OKExOrder*>* ordList;
+	std::map<std::string, OKExOrder*>* liveOrdList;
 
 	int tradedCntBuy;
 	int tradedCntSell;
@@ -164,7 +164,7 @@ public:
 	bool updateBooks(OKExMktMsg* msg);
 	std::map<int, book>::iterator findBest(int pr, OKExEnums::side side);
 	bool reflectMsg(OKExMktMsg* msg);
-	void updateOrders(dataOrder* ord);
+	void updateOrders(dataOrder* dtord);
 
 	void updateRings(void);
 };

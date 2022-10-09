@@ -208,7 +208,7 @@ OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price h
     }
     return output;
 }
-void book::executeOrder(dataOrder* trd)
+bool book::executeOrder(dataOrder* trd)
 {
     std::map<std::string, OKExOrder*>::iterator ordit = liveOrders.find(trd->clOrdId);
     if (ordit != liveOrders.end())
@@ -236,8 +236,10 @@ void book::executeOrder(dataOrder* trd)
         if (ordit->second->status == OKExEnums::orderState::CANCELED || ordit->second->status == OKExEnums::orderState::FILLED)
         {
             liveOrders.erase(ordit->first);
+            return true;
         }
     }
+    return false;
 }
 
 void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
@@ -459,7 +461,7 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
                 msgbookit->sz *= (double)ctVal;
             }
             book bk;
-            bk.updateBook(*msgbookit);
+            bk.updateBook(OKExEnums::side::BUY, *msgbookit);
             bids[(int)(msgbookit->px * priceUnit)] = bk;
             if (tempbestbid == 0 || tempbestbid < (int)(msgbookit->px * priceUnit))
             {
@@ -478,7 +480,7 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
                 msgbookit->sz *= (double)ctVal;
             }
             book bk;
-            bk.updateBook(*msgbookit);
+            bk.updateBook(OKExEnums::side::SELL, *msgbookit);
             asks[(int)(msgbookit->px * priceUnit)] = bk;
             if (tempbestask == 0 || tempbestask > (int)(msgbookit->px * priceUnit))
             {
@@ -634,7 +636,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             if (bk != thisbookend)
             {
                 orgSide = bk->second.side;
-                bk->second.updateBook(*bookit);
+                bk->second.updateBook(OKExEnums::side::BUY,*bookit);
                 if (bk->second.side == OKExEnums::side::BUY)
                 {
                     if (bk->second.sz > 0 && bk->first > bestBid->first)
@@ -692,7 +694,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             if (bk != thisbookend)
             {
                 orgSide = bk->second.side;
-                bk->second.updateBook(*bookit);
+                bk->second.updateBook(OKExEnums::side::SELL, *bookit);
                 if (bk->second.side == OKExEnums::side::SELL)
                 {
                     if (bk->second.sz > 0 && bk->first < bestAsk->first)
@@ -745,7 +747,7 @@ bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
     {
         if (msg->args["action"] == "snapshot")
         {
-            initializeBooks(msg);
+            initializeBooks(msg,bookDepth);
         }
         else
         {
@@ -760,7 +762,48 @@ bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
     //calcMid
     return blOptimize;
 }
-void OKExInstrument::updateOrders(dataOrder* ord)
+void OKExInstrument::updateOrders(dataOrder* dtord)
 {
-
+    //Find the order and update it.
+    //Call book->updateOrder if it's an ack of the order
+    //Call book->executeOrder if it's an execution.
+    //Update Variables on Instrument class and Position Class.
+    std::map<std::string, OKExOrder*>::iterator ordit = liveOrdList->find(dtord->clOrdId);
+    book bk;
+    book newbk;
+    OKExOrder* neword;
+    if (ordit != liveOrdList->end())
+    {
+        bk = books.at(ordit->second->px);
+        if (dtord->fillSz > 0)//Execution
+        {
+            bk.executeOrder(dtord);
+            if (dtord->side == OKExEnums::side::BUY)
+            {
+                ++tradedCntBuy;
+                tradedQtyBuy += dtord->fillSz;
+                tradedAmtBuy += dtord->fillSz * dtord->fillPx;
+            }
+            else if (dtord->side == OKExEnums::side::SELL)
+            {
+                ++tradedCntSell;
+                tradedQtySell += dtord->fillSz;
+                tradedAmtSell += dtord->fillSz * dtord->fillPx;
+            }
+        }
+        else
+        {
+            neword = bk.updateOrder(dtord);
+            if (neword)
+            {
+                newbk = books.at(neword->px);
+                newbk.addOrder(neword);
+                
+            }
+        }
+        if (ordit->second->status == OKExEnums::orderState::CANCELED || ordit->second->status == OKExEnums::orderState::FILLED)
+        {
+            liveOrdList->erase(ordit->first);
+        }
+    }
 }

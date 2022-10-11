@@ -50,15 +50,15 @@ void book::updateBook(OKExEnums::side sd, msgbook msg)
     px = msg.px;
     switch (sd)
     {
-    case OKExEnums::BUY:
+    case OKExEnums::side::BUY:
         szBuy = msg.sz;
         numOfOrdBuy = msg.numOfOrd;
         break;
-    case OKExEnums::SELL:
+    case OKExEnums::side::SELL:
         szSell = msg.sz;
         numOfOrdBuy = msg.numOfOrd;
         break;
-    case OKExEnums::NONE:
+    case OKExEnums::side::NONE:
     default:
         break;
     }
@@ -391,7 +391,7 @@ void OKExInstrument::updateTrade(OKExMktMsg* msg)
             realizedVolatility += pow(log(last / it->px),2);
         }
         last = it->px;
-        if (ctType == OKExEnums::INVERSE)
+        if (ctType == OKExEnums::ctType::INVERSE)
         {
             if (it->side == OKExEnums::side::BUY)//this means the market order is BUY
             {
@@ -571,7 +571,7 @@ std::map<int, book>::iterator OKExInstrument::findBest(int pr, OKExEnums::side s
     {
         switch (side)
         {
-        case OKExEnums::BUY:
+        case OKExEnums::side::BUY:
             while (it != itbegin)
             {
                 --it;
@@ -581,7 +581,7 @@ std::map<int, book>::iterator OKExInstrument::findBest(int pr, OKExEnums::side s
                 }
             }
             break;
-        case OKExEnums::SELL:
+        case OKExEnums::side::SELL:
             while (it != itend)
             {
                 ++it;
@@ -595,7 +595,7 @@ std::map<int, book>::iterator OKExInstrument::findBest(int pr, OKExEnums::side s
                 }
             }
             break;
-        case OKExEnums::NONE:
+        case OKExEnums::side::NONE:
         default:
             break;
         }

@@ -3,14 +3,14 @@
 
 namespace OKExEnums
 {
-    enum msgType
+    enum struct msgType
     {
         NONE = 0,
         PUSHDATA = 1,
 
     };
 
-    enum subsribeType
+    enum struct subsribeType
     {
         NONE = 0,
         SUBSCRIBE = 1,
@@ -18,7 +18,7 @@ namespace OKExEnums
         ERROR = 3
     };
 
-    enum instType
+    enum struct instType
     {
         NONE = 0,
         SPOT = 1,
@@ -28,21 +28,21 @@ namespace OKExEnums
         OPTION = 5
     };
 
-    enum side
+    enum struct side
     {
         NONE = 0,
         BUY = 1,
         SELL = 2
     };
 
-    enum tradeMode
+    enum struct tradeMode
     {
         NONE = 0,
         ISOLATED = 2,
         CROSS = 3
     };
 
-    enum posSide
+    enum struct posSide
     {
         NONE = 0,
         NET = 1,
@@ -50,7 +50,7 @@ namespace OKExEnums
         SHORT = 3
     };
 
-    enum ordType
+    enum struct ordType
     {
         NONE = 0,
         MARKET = 1,
@@ -61,14 +61,14 @@ namespace OKExEnums
         OPTIMAL_LIMIT_IOC = 6
     };
 
-    enum quantityType
+    enum struct quantityType
     {
         NONE = 0,
         BASE_CCY = 1,
         QUOTE_CCY = 2
     };
 
-    enum eventType
+    enum struct eventType
     {
         NONE = 0,
         SNAPSHOT = 1,
@@ -85,14 +85,14 @@ namespace OKExEnums
         INTEREST_DEDUCTION = 12
     };
 
-    enum execType
+    enum struct execType
     {
         NONE = 0,
         TAKER = 1,
         MAKER = 2
     };
 
-    enum orderState
+    enum struct orderState
     {
         NONE = 0,
         LIVE = 1,
@@ -104,7 +104,7 @@ namespace OKExEnums
         WAIT_CAN = 13
     };
 
-    enum priceType
+    enum struct priceType
     {
         NONE = 0,
         LAST = 1,
@@ -112,7 +112,7 @@ namespace OKExEnums
         MARK = 3
     };
 
-    enum category
+    enum struct category
     {
         NONE = 0,
         NORMAL = 1,
@@ -124,7 +124,7 @@ namespace OKExEnums
         DDH = 7
     };
 
-    enum amendResult
+    enum struct amendResult
     {
         NONE = -99,
         FAILURE = -1,
@@ -132,7 +132,7 @@ namespace OKExEnums
         AUTO_CANCEL = 1
     };
 
-    enum rfqState
+    enum struct rfqState
     {
         NONE = 0,
         ACTIVE = 1,
@@ -144,7 +144,7 @@ namespace OKExEnums
         FAILED = 7
     };
 
-    enum algoState
+    enum struct algoState
     {
         NONE = 0,
         STARTING = 1,
@@ -153,14 +153,14 @@ namespace OKExEnums
         NO_CLOSE_POSITION = 4
     };
 
-    enum gridType
+    enum struct gridType
     {
         NONE = 0,
         ARITHMETIC = 1,
         GEOMETRIC = 2
     };
 
-    enum cancelType
+    enum struct cancelType
     {
         NONE = 0,
         MANUALSTOP = 1,
@@ -170,7 +170,7 @@ namespace OKExEnums
         DELIVERY = 5
     };
 
-    enum stopType
+    enum struct stopType
     {
         NONE = 0,
         SELLBASECCY = 1,
@@ -179,7 +179,7 @@ namespace OKExEnums
         KEEPPOS = 4
     };
 
-    enum contractGridType
+    enum struct contractGridType
     {
         NONE = 0,
         LONG = 1,
@@ -187,7 +187,7 @@ namespace OKExEnums
         NUETRAL = 3
     };
 
-    enum subOrderState
+    enum struct subOrderState
     {
         NONE = 0,
         CANCELED = 1,
@@ -197,21 +197,21 @@ namespace OKExEnums
         CANCELLING = 5
     };
 
-    enum optType
+    enum struct optType
     {
         NONE = 0,
         CALL = 1,
         PUT = 2
     };
 
-    enum ctType
+    enum struct ctType
     {
         NONE = 0,
         LINEAR = 1,
         INVERSE = 2
     };
 
-    enum insState
+    enum struct insState
     {
         NONE = 0,
         LIVE = 1,
@@ -221,7 +221,7 @@ namespace OKExEnums
         SETTLEMENT = 5
     };
 
-    enum sysStatus
+    enum struct sysStatus
     {
         NONE = 0,
         SCHEDULED = 1,
@@ -229,7 +229,7 @@ namespace OKExEnums
         COMPLETED = 3,
         CANCELED = 4
     };
-    enum serviceType
+    enum struct serviceType
     {
         NONE = -1,
         WEBSOCKET = 0,

@@ -4,13 +4,25 @@ OKExFeedFileReader* feedReader = OKExFeedFileReader::getInstance();
 
 OKExFeedFileReader::OKExFeedFileReader()
 {
-
+	time = 0;
+	insList = nullptr;
+	feedCount = 0;
+	lastFeedCount = 0;
 }
 OKExFeedFileReader::~OKExFeedFileReader()
 {
 
 }
-void OKExFeedFileReader::initializeInsList(std::string masterfile)
+
+void OKExFeedFileReader::initialize(void)
+{
+	time = 0;
+	insList = nullptr;
+	feedCount = 0;
+	lastFeedCount = 0;
+}
+
+std::map<std::string, OKExInstrument*>* OKExFeedFileReader::initializeInsList(std::string masterfile)
 {
 	std::ifstream fs(masterfile);
 	std::string line;
@@ -49,6 +61,7 @@ void OKExFeedFileReader::initializeInsList(std::string masterfile)
 			}
 		}
 	}
+	return insList;
 }
 void OKExFeedFileReader::readFeedFile(std::string feedFile)
 {

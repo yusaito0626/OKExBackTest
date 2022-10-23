@@ -1,0 +1,548 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    stbarStatus = new QLabel();
+    stbarStatus->setFixedWidth(85);
+    stbarStatus->setAlignment(Qt::AlignCenter);
+    stbarMsg = new QLabel();
+    stbarMsg->setFixedWidth(380);
+    stbarMsg->setAlignment(Qt::AlignCenter);
+    stbarTime = new QLabel();
+    stbarTime->setFixedWidth(85);
+    stbarTime->setAlignment(Qt::AlignCenter);
+    stbarDate = new QLabel();
+    stbarDate->setFixedWidth(85);
+    stbarDate->setAlignment(Qt::AlignCenter);
+
+    ui->statusbar->addWidget(stbarStatus);
+    ui->statusbar->addWidget(stbarMsg);
+    ui->statusbar->addWidget(stbarTime);
+    ui->statusbar->addWidget(stbarDate);
+
+    Asks.push_back(std::pair<QLabel*, QLabel*>(ui->lblAskPr1,ui->lblAskQty1));
+    Asks.push_back(std::pair<QLabel*, QLabel*>(ui->lblAskPr2, ui->lblAskQty2));
+    Asks.push_back(std::pair<QLabel*, QLabel*>(ui->lblAskPr3, ui->lblAskQty3));
+    Asks.push_back(std::pair<QLabel*, QLabel*>(ui->lblAskPr4, ui->lblAskQty4));
+    Asks.push_back(std::pair<QLabel*, QLabel*>(ui->lblAskPr5, ui->lblAskQty5));
+    Asks.push_back(std::pair<QLabel*, QLabel*>(ui->lblAskPr6, ui->lblAskQty6));
+    Asks.push_back(std::pair<QLabel*, QLabel*>(ui->lblAskPr7, ui->lblAskQty7));
+    Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr1, ui->lblBidQty1));
+    Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr2, ui->lblBidQty2));
+    Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr3, ui->lblBidQty3));
+    Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr4, ui->lblBidQty4));
+    Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr5, ui->lblBidQty5));
+    Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr6, ui->lblBidQty6));
+    Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr7, ui->lblBidQty7));
+
+    UpdateCount = 0;
+
+    Displaytimer = new QTimer(this);
+    Displaytimer->setInterval(1000);
+    Displaytimer->setSingleShot(false);
+
+    DefineStyleSheet();
+    SetStyle();
+
+    connect(Displaytimer, SIGNAL(timeout()),this, SLOT(UpdateDisplay()));
+
+    ProcedureStarted = false;
+
+    int InitialLogPool = 1000;
+ 
+    Displaytimer->start();
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::WriteLog(void)
+{
+    time_t now = time(NULL);
+    struct tm* pnow = localtime(&now);
+    QString strtime;
+    strtime.asprintf("%02d:%02d:%02d", pnow->tm_hour, pnow->tm_min, pnow->tm_sec);
+   
+    std::string msg = "";
+    Enums::logType type = Enums::logType::_NONE;
+    type = logWriter->getLog(msg);
+   
+
+    if (msg != "")
+    {
+        while (msg != "")
+        {
+            int WroteCount = 0;
+            const char* chmsg = msg.c_str();
+            QString NewLine = "";
+            NewLine.append(strtime);
+            NewLine.append("     ");
+            NewLine.append(chmsg);
+            NewLine.append("\n");
+            LogText.append(NewLine);
+            ++WroteCount;
+            logfile << NewLine.toStdString();
+            logfile.flush();
+            if (WroteCount > 1000)
+            {
+                break;
+            }
+            type = logWriter->getLog(msg);
+        }
+        if (ui->LogTextEdit->verticalScrollBar()->value() == ui->LogTextEdit->verticalScrollBar()->maximum())
+        {
+            ui->LogTextEdit->setPlainText(LogText);
+            ui->LogTextEdit->verticalScrollBar()->setValue(ui->LogTextEdit->verticalScrollBar()->maximum());
+        }
+        else
+        {
+            int CurrentPos = ui->LogTextEdit->verticalScrollBar()->value();
+            ui->LogTextEdit->setPlainText(LogText);
+            ui->LogTextEdit->verticalScrollBar()->setValue(CurrentPos);
+        }
+        if (ui->BTLogTextEdit->verticalScrollBar()->value() == ui->BTLogTextEdit->verticalScrollBar()->maximum())
+        {
+            ui->BTLogTextEdit->setPlainText(LogText);
+            ui->BTLogTextEdit->verticalScrollBar()->setValue(ui->BTLogTextEdit->verticalScrollBar()->maximum());
+        }
+        else
+        {
+            int CurrentPos = ui->BTLogTextEdit->verticalScrollBar()->value();
+            ui->BTLogTextEdit->setPlainText(LogText);
+            ui->BTLogTextEdit->verticalScrollBar()->setValue(CurrentPos);
+        }
+    }
+}
+
+void MainWindow::UpdateDisplay(void)
+{
+    if (ProcedureStarted)
+    {
+        if (UpdateCount > 1)
+        {
+            AddColor = true;
+            UpdateCount = 0;
+        }
+        else
+        {
+            AddColor = false;
+            ++UpdateCount;
+        }
+
+        //MainTab
+
+
+        //SymbolTab
+        if (displayedIns)
+        {
+            UpdateInsInfo(displayedIns);
+        }
+    }
+    WriteLog();  
+}
+
+void MainWindow::InitilizeInsBox(void)
+{
+    if (insList)
+    {
+        std::map<std::string, OKExInstrument*>::iterator it;
+        std::map<std::string, OKExInstrument*>::iterator it_end = insList->end();
+        for (it = insList->begin(); it != it_end; ++it)
+        {
+            ui->BoxInstruments->addItem(QString::fromStdString(it->first));
+        }
+    }
+}
+
+void MainWindow::on_BoxInstruments_currentTextChanged(const QString& arg1)
+{
+    ui->lblSymbol->setText(arg1);
+    std::string ID = arg1.toStdString();
+    SetInstrunemt(ID);
+}
+
+void MainWindow::SetInstrunemt(std::string instId)
+{
+    std::map<std::string, OKExInstrument*>::iterator it = insList->find(instId);
+    if (it != insList->end())
+    {
+        displayedIns = it->second;
+
+        UpdateInsInfo(displayedIns);
+    }
+}
+
+void MainWindow::UpdateInsInfo(OKExInstrument* ins)
+{
+    //Price
+    ui->lblOpen->setText(QString::number(ins->open));
+    ui->lblLow->setText(QString::number(ins->low));
+    ui->lblHigh->setText(QString::number(ins->high));
+    ui->lblLast->setText(QString::number(ins->last));
+
+    //Books
+    std::vector<std::pair<QLabel*, QLabel*>>::iterator it = Asks.begin();
+    std::vector<std::pair<QLabel*, QLabel*>>::iterator bkend = Asks.end();
+    std::map<int, book>::iterator insbkit = ins->bestAsk;
+    std::map<int, book>::iterator insbkend = ins->books.end();
+    while (it != bkend)
+    {
+        if (insbkit == insbkend)
+        {
+            it->first->setText("");
+            it->second->setText("");
+        }
+        else
+        {
+            while (insbkit != insbkend)
+            {
+                if (insbkit->second.sz > 0)
+                {
+                    it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
+                    it->second->setText(QString::number(insbkit->second.sz));
+                    ++insbkit;
+                }
+            }
+        }
+        ++it;
+    }
+    it = Bids.begin();
+    bkend = Bids.end();
+    insbkit = ins->bestBid;
+    std::map<int, book>::iterator insbkbegin = ins->books.begin();
+    while (it != bkend)
+    {
+        if (insbkit == insbkend)
+        {
+            it->first->setText("");
+            it->second->setText("");
+        }
+        else if (insbkit == insbkbegin)
+        {
+            if (insbkit->second.sz > 0)
+            {
+                it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
+                it->second->setText(QString::number(insbkit->second.sz));
+                insbkit = insbkend;
+            }
+        }
+        else
+        {
+            while (insbkit != insbkend)
+            {
+                if (insbkit->second.sz > 0)
+                {
+                    it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
+                    it->second->setText(QString::number(insbkit->second.sz));
+                    --insbkit;
+                }
+            }
+        }
+        ++it;
+    }
+}
+
+void MainWindow::UpdateSettingTab(void)
+{
+
+}
+
+void MainWindow::UpdatePairsTab(void)
+{
+    if (insList)
+    {
+        std::map<std::string, OKExInstrument*>::iterator ins_it;
+        std::map<std::string, OKExInstrument*>::iterator ins_end = insList->end();
+        std::vector<PairInfo>::iterator info_it = PairsInfo->begin();
+        std::vector<PairInfo>::iterator info_end = PairsInfo->end();
+        for (ins_it = insList->begin(); ins_it != ins_end; ++ins_it)
+        {
+            
+        }
+    }
+}
+
+void MainWindow::InitializeObjects(void)
+{
+    calendar->Initialize(GlobalVariables::OKExBacktest_GUI::calandarFile);
+    feedReader->initialize();
+    insList = feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\master.txt");
+}
+
+void MainWindow::SetNewDate(int date)
+{
+
+}
+
+void MainWindow::on_testButton_clicked(void)
+{
+    ui->testPushbutton->setEnabled(false);
+    PrevFeedCount = 0;
+
+    InitializeObjects();
+    InitilizeInsBox();
+
+    ProcedureStarted = true;
+    boost::thread* th = new boost::thread(boost::bind(&MainWindow::test,this));
+    ui->testPushbutton->setText("testing...");
+}
+
+void MainWindow::test(void)
+{
+    int startdate = ui->testTextEdit->toPlainText().toInt();
+    int enddate = ui->testTextEdit_2->toPlainText().toInt();
+
+    int starttime = 6;
+    int i = starttime;
+
+    bool IsFirstDay = true;
+
+    std::map<int, Date>::iterator it_end = calendar->end();
+    std::map<int, Date>::iterator it = calendar->GetDay(startdate, 0);
+    std::map<int, Date>::iterator it_prev = calendar->GetDay(startdate, -1);
+    while (it_prev->second.weekday > 4)
+    {
+        --it_prev;
+    }
+
+    while (it->first <= enddate)
+    {
+        if (it->second.weekday < 5)
+        {
+            ++it;
+            SetNewDate(it->first);
+        }
+        else
+        {
+            ++it;
+            
+        }
+    }
+    ui->testPushbutton->setText("tested.");
+}
+
+void MainWindow::DefineStyleSheet(void)
+{
+    MainWindowStyle = "QMainWindow{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(223,227,232,0.9) stop: 1 rgba(223,227,232,1));\
+                        }";
+    MenuBarStyle = "QMenuBar{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                        }";
+    MenuStyle = "QMenu{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(223,227,232,0.9) stop: 1 rgba(223,227,232,1));\
+                        }";
+    MainTabStyle = "QTabWidget::pane{\
+                                border-top: 1px solid #C2C7CB;\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.4 rgba(223,227,232,0.9) stop: 1 rgba(223,227,232,1));\
+                        }";
+    TabBarStyle = "QTabBar::tab{\
+                                background-color : rgba(223,227,232,1);\
+                                min-width: 10ex;\
+                                border-top-left-radius: 2px;\
+                                border-top-right-radius: 2px;\
+                                padding: 3px;\
+                        }\
+                    QTabBar::tab:selected{\
+                                background-color : rgba(223,227,232,0.5); \
+                        }\
+                    QTabBar::tab:hover{\
+                                background-color : rgba(223,227,232,0.5); \
+                        }";
+    ScrollAreaStyle = "QLabel{\
+                                background-color : rgba(137,114,150,1);\
+                        }";
+    TableStyle = "QTableView QTableCornerButton::section{\
+                                background-color : rgba(197,206,216,1);\
+                        }";
+    msgBoxStyle = "QMessageBox{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(223,227,232,0.9) stop: 1 rgba(223,227,232,1));\
+                        }";
+    GeneralButtonStyle = "QPushButton{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 5;\
+                                border-right-color: rgba(0,0,0,0.8);\
+                                border-bottom-color: rgba(0,0,0,0.8);\
+                                border-top-color: rgba(255,255,255,0.8);\
+                                border-left-color: rgba(255,255,255,0.8);\
+                        }\
+                         QPushButton:checked{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 5;\
+                                border-right-color: rgba(255,255,255,0.8);\
+                                border-bottom-color: rgba(255,255,255,0.8);\
+                                border-top-color: rgba(0,0,0,0.8);\
+                                border-left-color: rgba(0,0,0,0.8);\
+                        }\
+                        QPushButton:pressed{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 5;\
+                                border-right-color: rgba(255,255,255,0.8);\
+                                border-bottom-color: rgba(255,255,255,0.8);\
+                                border-top-color: rgba(0,0,0,0.8);\
+                                border-left-color: rgba(0,0,0,0.8);\
+                        }";
+    StatusButtonStyle = "QPushButton{\
+                                color : rgba(255,255,255,1)\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,0,0,0.3), stop: 0.5 rgba(255,0,0,0.9) stop: 1 rgba(255,0,0,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 5px;\
+                                border-right-color: rgba(0,0,0,0.8);\
+                                border-bottom-color: rgba(0,0,0,0.8);\
+                                border-top-color: rgba(255,255,255,0.8);\
+                                border-left-color: rgba(255,255,255,0.8);\
+                        }\
+                          QPushButton:checked{\
+                                color : rgba(60,60,60,1)\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(0,255,0,1), stop: 0.3 rgba(0,255,0,0.9) stop: 1 rgba(0,255,0,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 5px;\
+                                border-right-color: rgba(255,255,255,0.8);\
+                                border-bottom-color: rgba(255,255,255,0.8);\
+                                border-top-color: rgba(0,0,0,0.8);\
+                                border-left-color: rgba(0,0,0,0.8);\
+                        }\
+                        QPushButton:pressed{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 5;\
+                                border-right-color: rgba(255,255,255,0.8);\
+                                border-bottom-color: rgba(255,255,255,0.8);\
+                                border-top-color: rgba(0,0,0,0.8);\
+                                border-left-color: rgba(0,0,0,0.8);\
+                        }";
+    LockButtonStyle = "QPushButton{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 10;\
+                                border-right-color: rgba(0,0,0,0.8);\
+                                border-bottom-color: rgba(0,0,0,0.8);\
+                                border-top-color: rgba(255,255,255,0.8);\
+                                border-left-color: rgba(255,255,255,0.8);\
+                        }\
+                          QPushButton::checked{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 10;\
+                                border-right-color: rgba(255,255,255,0.8);\
+                                border-bottom-color: rgba(255,255,255,0.8);\
+                                border-top-color: rgba(0,0,0,0.8);\
+                                border-left-color: rgba(0,0,0,0.8);\
+                        }\
+                        QPushButton:pressed{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(197,206,216,0.9) stop: 1 rgba(197,206,216,1));\
+                                border: ridge;\
+                                border-width: 2px;\
+                                border-radius: 5;\
+                                border-right-color: rgba(255,255,255,0.8);\
+                                border-bottom-color: rgba(255,255,255,0.8);\
+                                border-top-color: rgba(0,0,0,0.8);\
+                                border-left-color: rgba(0,0,0,0.8);\
+                        }";
+    StatusBarStyle = "QStatusBar{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(223,227,232,0.9) stop: 1 rgba(223,227,232,1));\
+                        }\
+                        QStatusBar::item{\
+                                background-color : QLinearGradient(x1: 0, y1: 0,x2: 1, y2: 1 stop: 0 rgba(255,255,255,1), stop: 0.3 rgba(223,227,232,0.9) stop: 1 rgba(223,227,232,1));\
+                                border: ridge;\
+                                border-width: 1.5px;\
+                                border-right-color: rgba(255,255,255,0.8);\
+                                border-bottom-color: rgba(255,255,255,0.8);\
+                                border-top-color: rgba(0,0,0,0.8);\
+                                border-left-color: rgba(0,0,0,0.8);\
+                        }";
+
+    GeneralLabelFont.setFamily(QStringLiteral("Calibri"));
+    GeneralLabelFont.setPointSize(10);
+    GeneralLabelFont.setBold(true);
+
+    GeneralButtonFont.setFamily(QStringLiteral("Calibri"));
+    GeneralButtonFont.setPointSize(10);
+    GeneralButtonFont.setBold(true);
+
+    QBrush TableButtonBrush(QColor(197,206,216,255));
+    QBrush TableWindowBrush(QColor(223,227,232,255));
+
+    TablePalette.setBrush(QPalette::Button,TableButtonBrush);
+    TablePalette.setBrush(QPalette::Window,TableWindowBrush);
+
+    Green.setColor(QPalette::WindowText,Qt::green);
+    Red.setColor(QPalette::WindowText, Qt::red);
+
+    QBrush ComboBoxBrush(QColor(197,206,216,255));
+
+    //ComboBoxPalette.setStyle(Qt::SolidPattern);
+    TablePalette.setBrush(QPalette::Button,ComboBoxBrush);
+}
+
+void MainWindow::SetStyle(void)
+{
+    this->setStyleSheet(MainWindowStyle);
+    ui->menubar->setStyleSheet(MenuBarStyle);
+    ui->statusbar->setStyleSheet(StatusBarStyle);
+    ui->tabWidget->setStyleSheet(MainTabStyle);
+    ui->tabWidget->tabBar()->setStyleSheet(TabBarStyle);
+    ui->tabMain->setStyleSheet(MenuStyle);
+    this->setFont(GeneralLabelFont);
+    ui->testPushbutton->setStyleSheet(GeneralButtonStyle);
+    ui->testPushbutton->setFont(GeneralButtonFont);
+}
+
+
+void MainWindow::PairInfo::Clear(void)
+{
+    if (Symbol)
+    {
+        Symbol->setText("");
+    }
+    if (SellAmt)
+    {
+        SellAmt->setText("");
+    }
+    if (SellPr)
+    {
+        SellPr->setText("");
+    }
+    if (Spread)
+    {
+        Spread->setText("");
+    }
+    if (BuyPr)
+    {
+        BuyPr->setText("");
+    }
+    if (BuyAmt)
+    {
+        BuyAmt->setText("");
+    }
+}
+
+void MainWindow::PairInfo::SetInfo(OKExInstrument* ins, bool color)
+{
+    double sp;
+    QPalette G;
+    QPalette R;
+    QPalette B;
+    G.setColor(QPalette::WindowText, Qt::green);
+    R.setColor(QPalette::WindowText, Qt::red);
+    B.setColor(QPalette::WindowText, Qt::black);
+   
+}

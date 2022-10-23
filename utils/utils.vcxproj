@@ -131,13 +131,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="calendar.h" />
     <ClInclude Include="includes.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="LockFreeQueue.h" />
+    <ClInclude Include="Logging.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="calendar.cpp" />
     <ClCompile Include="json.cpp" />
     <ClCompile Include="LockFreeQueue.cpp" />
+    <ClCompile Include="Logging.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

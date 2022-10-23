@@ -6,3 +6,7 @@
 #include <atomic>
 #include <fstream>
 #include <sstream>
+
+#include <boost/thread/thread.hpp>
+#include <boost/function.hpp>
+#include <boost/bind.hpp>

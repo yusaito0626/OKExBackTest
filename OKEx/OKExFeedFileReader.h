@@ -3,6 +3,7 @@
 #include "includes.h"
 #include "OKExInstrument.h"
 #include "../utils/json.h"
+#include "../utils/Logging.h"
 
 class OKExFeedFileReader
 {
@@ -10,10 +11,14 @@ class OKExFeedFileReader
 	OKExFeedFileReader(const OKExFeedFileReader&) {};
 	OKExFeedFileReader& operator=(const OKExFeedFileReader&) {};
 public:
+	long long time;
 	std::map<std::string, OKExInstrument*>* insList;
+	int feedCount;
+	int lastFeedCount;
 
 	~OKExFeedFileReader();
-	void initializeInsList(std::string masterfile);
+	void initialize(void);
+	std::map<std::string, OKExInstrument*>* initializeInsList(std::string masterfile);
 	void readFeedFile(std::string feedFile);
 
 	static OKExFeedFileReader* getInstance(void)

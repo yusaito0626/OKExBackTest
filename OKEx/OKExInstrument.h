@@ -40,7 +40,7 @@ public:
 	OKExEnums::posSide posSide;
 	double pos;
 	double baseBal;
-	double quoteBl;
+	double quoteBal;
 	double posCcy;
 	double posId;
 	double availPos;
@@ -134,6 +134,9 @@ public:
 
 	double last;
 	double mid;
+	double open;
+	double high;
+	double low;
 
 	long long ts;
 	long long lastOptTs;

@@ -91,15 +91,15 @@ void OKExParser::parsePushData(std::string str, OKExMktMsg* msg)
 						dttrade.sz = stod(data["sz"]);
 						if (data["side"] == "buy")
 						{
-							dttrade.side = OKExEnums::side::BUY;
+							dttrade.side = OKExEnums::side::_BUY;
 						}
 						else if (data["side"] == "sell")
 						{
-							dttrade.side = OKExEnums::side::SELL;
+							dttrade.side = OKExEnums::side::_SELL;
 						}
 						else
 						{
-							dttrade.side = OKExEnums::side::NONE;
+							dttrade.side = OKExEnums::side::_NONE;
 						}
 						msg->trades.push_back(dttrade);
 					}

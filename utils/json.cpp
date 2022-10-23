@@ -22,7 +22,7 @@ bool json::deserialize(std::string str, std::map<std::string, std::string>& mp)
 			if (comma < bracket && comma < curly)//the element is neither list nor map
 			{
 				colon = str.find(":",current);
-				key = str.substr(current + 1, colon - 1);
+				key = str.substr(current + 1, colon - current - 2);
 				val = str.substr(colon + 1, comma - colon - 1);
 				if (val.find("\"") == 0)
 				{
@@ -54,11 +54,11 @@ bool json::deserialize(std::string str, std::map<std::string, std::string>& mp)
 			else
 			{
 				colon = str.find(":", current);
-				key = str.substr(current + 1, colon - 1);
+				key = str.substr(current + 1, colon - current - 1);
 				valend = findEndOfBrackets(str, colon + 1);
 				if (valend != std::string::npos)
 				{
-					val = str.substr(colon + 1, valend);
+					val = str.substr(colon + 1, valend - colon);
 					mp.at(key) = val;
 					current = valend + 2;
 					comma = str.find(",", current);

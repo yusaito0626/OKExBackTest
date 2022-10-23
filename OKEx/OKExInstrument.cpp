@@ -2,7 +2,7 @@
 
 book::book()
 {
-    side = OKExEnums::side::NONE;
+    side = OKExEnums::side::_NONE;
     px = 0.0;
     sz = 0.0;
     szSell = 0.0;
@@ -32,7 +32,7 @@ book::book(const book& obj)
 
 book::~book()
 {
-    side = OKExEnums::side::NONE;
+    side = OKExEnums::side::_NONE;
     px = 0.0;
     sz = 0.0;
     szSell = 0.0;
@@ -50,39 +50,39 @@ void book::updateBook(OKExEnums::side sd, msgbook msg)
     px = msg.px;
     switch (sd)
     {
-    case OKExEnums::side::BUY:
+    case OKExEnums::side::_BUY:
         szBuy = msg.sz;
         numOfOrdBuy = msg.numOfOrd;
         break;
-    case OKExEnums::side::SELL:
+    case OKExEnums::side::_SELL:
         szSell = msg.sz;
         numOfOrdBuy = msg.numOfOrd;
         break;
-    case OKExEnums::side::NONE:
+    case OKExEnums::side::_NONE:
     default:
         break;
     }
     if (szBuy - szSell > 0)
     {
         sz = szBuy - szSell;
-        side = OKExEnums::side::BUY;
+        side = OKExEnums::side::_BUY;
     }
     else if (szBuy - szSell < 0)
     {
         sz = szSell - szBuy;
-        side = OKExEnums::side::SELL;
+        side = OKExEnums::side::_SELL;
     }
     else
     {
         sz = 0;
-        side = OKExEnums::side::NONE;
+        side = OKExEnums::side::_NONE;
     }
     liqOrd = msg.liqOrd;
 }
 
 void book::init(void)
 {
-    side = OKExEnums::side::NONE;
+    side = OKExEnums::side::_NONE;
     px = 0.0;
     sz = 0.0;
     szSell = 0.0;
@@ -149,11 +149,11 @@ OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price h
     {
         switch (ordit->second->status)
         {
-        case OKExEnums::orderState::WAIT_NEW:
-            ordit->second->status = OKExEnums::orderState::LIVE;
+        case OKExEnums::orderState::_WAIT_NEW:
+            ordit->second->status = OKExEnums::orderState::_LIVE;
             ordit->second->live = true;
             break;
-        case OKExEnums::orderState::WAIT_AMD:
+        case OKExEnums::orderState::_WAIT_AMD:
             ordit->second->sz = ordit->second->newSz;
             ordit->second->openSz = ordit->second->sz - ordit->second->execSz;
             if (ordit->second->openSz <= 0)
@@ -162,11 +162,11 @@ OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price h
                 ordit->second->live = false;
                 if (ordit->second->execSz > 0)
                 {
-                    ordit->second->status = OKExEnums::orderState::FILLED;
+                    ordit->second->status = OKExEnums::orderState::_FILLED;
                 }
                 else
                 {
-                    ordit->second->status = OKExEnums::orderState::CANCELED;
+                    ordit->second->status = OKExEnums::orderState::_CANCELED;
                 }
                 liveOrders.erase(ordit->first);
             }
@@ -174,11 +174,11 @@ OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price h
             {
                 if (ordit->second->execSz > 0)
                 {
-                    ordit->second->status = OKExEnums::orderState::PARTIALLY_FILLED;
+                    ordit->second->status = OKExEnums::orderState::_PARTIALLY_FILLED;
                 }
                 else
                 {
-                    ordit->second->status = OKExEnums::orderState::LIVE;
+                    ordit->second->status = OKExEnums::orderState::_LIVE;
                 }
                 if (ordit->second->px != ordit->second->newPx)
                 {
@@ -188,17 +188,17 @@ OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price h
                 }
             }
             break;
-        case OKExEnums::orderState::WAIT_CAN:
+        case OKExEnums::orderState::_WAIT_CAN:
             ordit->second->sz = ordit->second->execSz;
             ordit->second->openSz = 0;
             ordit->second->live = false;
             if (ordit->second->execSz > 0)
             {
-                ordit->second->status = OKExEnums::orderState::FILLED;
+                ordit->second->status = OKExEnums::orderState::_FILLED;
             }
             else
             {
-                ordit->second->status = OKExEnums::orderState::CANCELED;
+                ordit->second->status = OKExEnums::orderState::_CANCELED;
             }
             liveOrders.erase(ordit->first);
             break;
@@ -220,10 +220,10 @@ bool book::executeOrder(dataOrder* trd)
         ordit->second->avgPx = trd->avgPx;
         switch (ordit->second->status)
         {
-        case OKExEnums::orderState::WAIT_NEW:
-        case OKExEnums::orderState::WAIT_AMD:
-        case OKExEnums::orderState::WAIT_CAN:
-            if (trd->state == OKExEnums::orderState::FILLED)
+        case OKExEnums::orderState::_WAIT_NEW:
+        case OKExEnums::orderState::_WAIT_AMD:
+        case OKExEnums::orderState::_WAIT_CAN:
+            if (trd->state == OKExEnums::orderState::_FILLED)
             {
                 ordit->second->status = trd->state;
             }
@@ -233,7 +233,7 @@ bool book::executeOrder(dataOrder* trd)
             break;
         }
         
-        if (ordit->second->status == OKExEnums::orderState::CANCELED || ordit->second->status == OKExEnums::orderState::FILLED)
+        if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
         {
             liveOrders.erase(ordit->first);
             return true;
@@ -248,23 +248,23 @@ void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
 
     if (mp["instType"] == "SPOT")
     {
-        instType = OKExEnums::instType::SPOT;
+        instType = OKExEnums::instType::_SPOT;
     }
     else if (mp["instType"] == "SWAP")
     {
-        instType = OKExEnums::instType::SWAP;
+        instType = OKExEnums::instType::_SWAP;
     }
     else if (mp["instType"] == "FUTURES")
     {
-        instType = OKExEnums::instType::FUTURES;
+        instType = OKExEnums::instType::_FUTURES;
     }
     else if (mp["instType"] == "MARGIN")
     {
-        instType = OKExEnums::instType::MARGIN;
+        instType = OKExEnums::instType::_MARGIN;
     }
     else
     {
-        instType = OKExEnums::instType::NONE;
+        instType = OKExEnums::instType::_NONE;
     }
 
     baseCcy = mp["baseCcy"];
@@ -282,11 +282,11 @@ void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
     }
     if (mp["ctType"] == "inverse")
     {
-        ctType = OKExEnums::ctType::INVERSE;
+        ctType = OKExEnums::ctType::_INVERSE;
     }
     else
     {
-        ctType = OKExEnums::ctType::LINEAR;
+        ctType = OKExEnums::ctType::_LINEAR;
     }
     if (mp["ctVal"] != "")
     {
@@ -343,27 +343,27 @@ void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
     }
     if (mp["state"] == "live")
     {
-        state = OKExEnums::insState::LIVE;
+        state = OKExEnums::insState::_LIVE;
     }
     else if (mp["state"] == "suspend")
     {
-        state = OKExEnums::insState::SUSPEND;
+        state = OKExEnums::insState::_SUSPEND;
     }
     else if (mp["state"] == "expired")
     {
-        state = OKExEnums::insState::EXPIRED;
+        state = OKExEnums::insState::_EXPIRED;
     }
     else if (mp["state"] == "preopen")
     {
-        state = OKExEnums::insState::PREOPEN;
+        state = OKExEnums::insState::_PREOPEN;
     }
     else if (mp["state"] == "settlement")
     {
-        state = OKExEnums::insState::SETTLEMENT;
+        state = OKExEnums::insState::_SETTLEMENT;
     }
     else
     {
-        state = OKExEnums::insState::NONE;
+        state = OKExEnums::insState::_NONE;
     }
     if (mp["tickSz"] != "")
     {
@@ -371,6 +371,111 @@ void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
     }
 }
 
+position::position()
+{
+    instType = OKExEnums::instType::_NONE;
+    trdMode = OKExEnums::tradeMode::_NONE;
+    posSide = OKExEnums::posSide::_NONE;
+    pos = 0.0;
+    baseBal = 0.0;
+    quoteBal = 0.0;
+    posCcy = 0.0;
+    posId = 0.0;
+    availPos = 0.0;
+    avgPx = 0.0;
+    upl = 0.0;
+    uplRatio = 0.0;
+
+    instId = "";
+    tradeId = "";
+    lever = 0.0;
+    liqPx = 0.0;
+    markPx = 0.0;
+    imr = 0.0;
+    margin = 0.0;
+    mgnRatio = 0.0;
+    mmr = 0.0;
+    liab = 0.0;
+    liabCcy = 0.0;
+    interest = 0.0;
+    notionalUsd = 0.0;
+    optVal = 0.0;
+    adl = 0.0;
+    ccy = "";
+    last = 0.0;
+    usdPx = 0.0;
+    deltaBS = 0.0;
+    deltaPA = 0.0;
+    gammaBS = 0.0;
+    gammaPA = 0.0;
+    thetaBS = 0.0;
+    thetaPA = 0.0;
+    vegaBS = 0.0;
+    vegaPA = 0.0;
+    cTime = 0;
+    uTime = 0;
+    pTime = 0;
+}
+position::~position()
+{
+
+}
+void position::init(void)
+{
+    instType = OKExEnums::instType::_NONE;
+    trdMode = OKExEnums::tradeMode::_NONE;
+    posSide = OKExEnums::posSide::_NONE;
+    pos = 0.0;
+    baseBal = 0.0;
+    quoteBal = 0.0;
+    posCcy = 0.0;
+    posId = 0.0;
+    availPos = 0.0;
+    avgPx = 0.0;
+    upl = 0.0;
+    uplRatio = 0.0;
+
+    instId = "";
+    tradeId = "";
+    lever = 0.0;
+    liqPx = 0.0;
+    markPx = 0.0;
+    imr = 0.0;
+    margin = 0.0;
+    mgnRatio = 0.0;
+    mmr = 0.0;
+    liab = 0.0;
+    liabCcy = 0.0;
+    interest = 0.0;
+    notionalUsd = 0.0;
+    optVal = 0.0;
+    adl = 0.0;
+    ccy = "";
+    last = 0.0;
+    usdPx = 0.0;
+    deltaBS = 0.0;
+    deltaPA = 0.0;
+    gammaBS = 0.0;
+    gammaPA = 0.0;
+    thetaBS = 0.0;
+    thetaPA = 0.0;
+    vegaBS = 0.0;
+    vegaPA = 0.0;
+    cTime = 0;
+    uTime = 0;
+    pTime = 0;
+}
+
+
+
+OKExInstrument::OKExInstrument()
+{
+
+}
+OKExInstrument::~OKExInstrument()
+{
+
+}
 
 void OKExInstrument::setParams(std::list<std::string> params)
 {
@@ -391,15 +496,15 @@ void OKExInstrument::updateTrade(OKExMktMsg* msg)
             realizedVolatility += pow(log(last / it->px),2);
         }
         last = it->px;
-        if (ctType == OKExEnums::ctType::INVERSE)
+        if (ctType == OKExEnums::ctType::_INVERSE)
         {
-            if (it->side == OKExEnums::side::BUY)//this means the market order is BUY
+            if (it->side == OKExEnums::side::_BUY)//this means the market order is BUY
             {
                 ++execAskCnt;
                 execAskVol = it->sz * ctVal / it->px;
                 execAskAmt = it->sz * ctVal;
             }
-            else if (it->side == OKExEnums::side::SELL)//this means the market order is SELL
+            else if (it->side == OKExEnums::side::_SELL)//this means the market order is SELL
             {
                 ++execBidCnt;
                 execBidVol = it->sz * ctVal / it->px;
@@ -408,13 +513,13 @@ void OKExInstrument::updateTrade(OKExMktMsg* msg)
         }
         else
         {
-            if (it->side == OKExEnums::side::BUY)//this means the market order is BUY
+            if (it->side == OKExEnums::side::_BUY)//this means the market order is BUY
             {
                 ++execAskCnt;
                 execAskVol = it->sz * ctVal;
                 execAskAmt = it->sz * ctVal * it->px;
             }
-            else if (it->side == OKExEnums::side::SELL)//this means the market order is SELL
+            else if (it->side == OKExEnums::side::_SELL)//this means the market order is SELL
             {
                 ++execBidCnt;
                 execBidVol = it->sz * ctVal;
@@ -452,7 +557,7 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
         msgbookitend = it->bids.end();
         for (msgbookit = it->bids.begin(); msgbookit != msgbookitend; ++msgbookit)
         {
-            if (ctType == OKExEnums::ctType::INVERSE)
+            if (ctType == OKExEnums::ctType::_INVERSE)
             {
                 msgbookit->sz *= (double)ctVal / msgbookit->px;
             }
@@ -461,7 +566,7 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
                 msgbookit->sz *= (double)ctVal;
             }
             book bk;
-            bk.updateBook(OKExEnums::side::BUY, *msgbookit);
+            bk.updateBook(OKExEnums::side::_BUY, *msgbookit);
             bids[(int)(msgbookit->px * priceUnit)] = bk;
             if (tempbestbid == 0 || tempbestbid < (int)(msgbookit->px * priceUnit))
             {
@@ -471,7 +576,7 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
         msgbookitend = it->asks.end();
         for (msgbookit = it->asks.begin(); msgbookit != msgbookitend; ++msgbookit)
         {
-            if (ctType == OKExEnums::ctType::INVERSE)
+            if (ctType == OKExEnums::ctType::_INVERSE)
             {
                 msgbookit->sz *= (double)ctVal / msgbookit->px;
             }
@@ -480,7 +585,7 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
                 msgbookit->sz *= (double)ctVal;
             }
             book bk;
-            bk.updateBook(OKExEnums::side::SELL, *msgbookit);
+            bk.updateBook(OKExEnums::side::_SELL, *msgbookit);
             asks[(int)(msgbookit->px * priceUnit)] = bk;
             if (tempbestask == 0 || tempbestask > (int)(msgbookit->px * priceUnit))
             {
@@ -571,7 +676,7 @@ std::map<int, book>::iterator OKExInstrument::findBest(int pr, OKExEnums::side s
     {
         switch (side)
         {
-        case OKExEnums::side::BUY:
+        case OKExEnums::side::_BUY:
             while (it != itbegin)
             {
                 --it;
@@ -581,7 +686,7 @@ std::map<int, book>::iterator OKExInstrument::findBest(int pr, OKExEnums::side s
                 }
             }
             break;
-        case OKExEnums::side::SELL:
+        case OKExEnums::side::_SELL:
             while (it != itend)
             {
                 ++it;
@@ -595,7 +700,7 @@ std::map<int, book>::iterator OKExInstrument::findBest(int pr, OKExEnums::side s
                 }
             }
             break;
-        case OKExEnums::side::NONE:
+        case OKExEnums::side::_NONE:
         default:
             break;
         }
@@ -624,7 +729,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
         bookitend = it->bids.end();
         for (bookit = it->bids.begin(); bookit != bookitend; ++bookit)
         {
-            if (ctType == OKExEnums::ctType::INVERSE)
+            if (ctType == OKExEnums::ctType::_INVERSE)
             {
                 bookit->sz *= (double)ctVal / bookit->px;
             }
@@ -636,8 +741,8 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             if (bk != thisbookend)
             {
                 orgSide = bk->second.side;
-                bk->second.updateBook(OKExEnums::side::BUY,*bookit);
-                if (bk->second.side == OKExEnums::side::BUY)
+                bk->second.updateBook(OKExEnums::side::_BUY,*bookit);
+                if (bk->second.side == OKExEnums::side::_BUY)
                 {
                     if (bk->second.sz > 0 && bk->first > bestBid->first)
                     {
@@ -645,7 +750,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                     }
                     else if (bk->first == bestBid->first && bk->second.sz == 0)
                     {
-                        temp_bid = findBest(bk->first, OKExEnums::side::BUY);
+                        temp_bid = findBest(bk->first, OKExEnums::side::_BUY);
                         if (temp_bid != books.end())
                         {
                             bestBid = temp_bid;
@@ -658,7 +763,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                 }
                 else
                 {
-                    temp_bid = findBest(bestBid->first, OKExEnums::side::BUY);
+                    temp_bid = findBest(bestBid->first, OKExEnums::side::_BUY);
                     if (temp_bid != books.end())
                     {
                         bestBid = temp_bid;
@@ -670,7 +775,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                 }
                 if (orgSide != bk->second.side && bk->first >= bestBid->first)
                 {
-                    temp_ask = findBest(bestAsk->first, OKExEnums::side::SELL);
+                    temp_ask = findBest(bestAsk->first, OKExEnums::side::_SELL);
                     if (temp_ask != books.end())
                     {
                         bestAsk = temp_ask;
@@ -682,7 +787,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
         bookitend = it->asks.end();
         for (bookit = it->asks.begin(); bookit != bookitend; ++bookit)
         {
-            if (ctType == OKExEnums::ctType::INVERSE)
+            if (ctType == OKExEnums::ctType::_INVERSE)
             {
                 bookit->sz *= (double)ctVal / bookit->px;
             }
@@ -694,8 +799,8 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             if (bk != thisbookend)
             {
                 orgSide = bk->second.side;
-                bk->second.updateBook(OKExEnums::side::SELL, *bookit);
-                if (bk->second.side == OKExEnums::side::SELL)
+                bk->second.updateBook(OKExEnums::side::_SELL, *bookit);
+                if (bk->second.side == OKExEnums::side::_SELL)
                 {
                     if (bk->second.sz > 0 && bk->first < bestAsk->first)
                     {
@@ -703,7 +808,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                     }
                     else if (bk->first == bestAsk->first && bk->second.sz == 0)
                     {
-                        temp_ask = findBest(bk->first, OKExEnums::side::SELL);
+                        temp_ask = findBest(bk->first, OKExEnums::side::_SELL);
                         if (temp_ask != books.end())
                         {
                             bestAsk = temp_ask;
@@ -716,7 +821,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                 }
                 else
                 {
-                    temp_ask = findBest(bestAsk->first, OKExEnums::side::SELL);
+                    temp_ask = findBest(bestAsk->first, OKExEnums::side::_SELL);
                     if (temp_ask != books.end())
                     {
                         bestAsk = temp_ask;
@@ -728,7 +833,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                 }
                 if (orgSide != bk->second.side && bk->first <= bestAsk->first)
                 {
-                    temp_bid = findBest(bestAsk->first, OKExEnums::side::BUY);
+                    temp_bid = findBest(bestAsk->first, OKExEnums::side::_BUY);
                     if (temp_bid != books.end())
                     {
                         bestBid = temp_bid;
@@ -738,6 +843,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             }
         }
     }
+    return true;
 }
 
 bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
@@ -778,13 +884,13 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
         if (dtord->fillSz > 0)//Execution
         {
             bk.executeOrder(dtord);
-            if (dtord->side == OKExEnums::side::BUY)
+            if (dtord->side == OKExEnums::side::_BUY)
             {
                 ++tradedCntBuy;
                 tradedQtyBuy += dtord->fillSz;
                 tradedAmtBuy += dtord->fillSz * dtord->fillPx;
             }
-            else if (dtord->side == OKExEnums::side::SELL)
+            else if (dtord->side == OKExEnums::side::_SELL)
             {
                 ++tradedCntSell;
                 tradedQtySell += dtord->fillSz;
@@ -801,7 +907,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                 
             }
         }
-        if (ordit->second->status == OKExEnums::orderState::CANCELED || ordit->second->status == OKExEnums::orderState::FILLED)
+        if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
         {
             liveOrdList->erase(ordit->first);
         }

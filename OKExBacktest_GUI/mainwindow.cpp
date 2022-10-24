@@ -208,6 +208,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                     it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
                     it->second->setText(QString::number(insbkit->second.sz));
                     ++insbkit;
+                    break;
                 }
             }
         }
@@ -242,6 +243,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                     it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
                     it->second->setText(QString::number(insbkit->second.sz));
                     --insbkit;
+                    break;
                 }
             }
         }

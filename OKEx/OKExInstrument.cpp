@@ -368,6 +368,7 @@ void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
     if (mp["tickSz"] != "")
     {
         tickSz = stod(mp["tickSz"]);
+        priceUnit = (int)(1 / tickSz);
     }
 }
 
@@ -498,7 +499,7 @@ OKExInstrument::OKExInstrument()
 
     isTrading = false;
 
-    bookDepth = 0;
+    bookDepth = 1000;
     bestAsk = books.end();
     bestBid = books.end();
     netPosition = 0.0;
@@ -659,10 +660,9 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
             }
         }
     }
-    int mid;
     if (tempbestask > 0 && tempbestbid > 0)
     {
-        mid = (int)(round((tempbestask + tempbestbid) / 2 / tickSz / priceUnit) * tickSz * priceUnit);
+        mid = (tempbestask + tempbestbid) / 2;
     }
     else if (tempbestask > 0)
     {
@@ -679,32 +679,24 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
 
     int i = 0;
     int tick = (int)(tickSz * priceUnit);
-    int askpr = mid;
-    int bidpr = mid;
+    int askpr = tempbestask;
+    int bidpr = tempbestbid;
     book bk;
     bidsitend = bids.end();
     asksitend = asks.end();
-    bidsit = bids.find(mid);
-    asksit = asks.find(mid);
-    if (bidsit != bidsitend)
+
+    int temppr = tempbestbid + tick;
+    while (temppr < tempbestask)
     {
-        books.emplace(mid, bidsit->second);
+        bk.init();
+        bk.px = temppr;
+        books.emplace(bk.px, bk);
     }
-    else if (asksit != asksitend)
-    {
-        books.emplace(mid, asksit->second);
-    }
-    else
-    {
-        bk.px = mid;
-        books.emplace(mid, bk);
-    }
+
 
 
     while (i < bookDepth)
     {
-        bidpr -= tick;
-        askpr += tick;
         bidsit = bids.find(bidpr);
         asksit = asks.find(askpr);
         if (bidsit != bidsitend)
@@ -725,7 +717,17 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
             bk.px = askpr;
             books.emplace(askpr, bk);
         }
+        bidpr -= tick;
+        askpr += tick;
         ++i;
+    }
+    if (tempbestask > 0)
+    {
+        bestAsk = books.find(tempbestask);
+    }
+    if (tempbestbid > 0)
+    {
+        bestBid = books.find(tempbestbid);
     }
 }
 
@@ -921,7 +923,7 @@ bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
         {
             initializeBooks(msg,bookDepth);
         }
-        else
+        else if(msg->args["action"] == "update")
         {
             blOptimize = updateBooks(msg);
         }

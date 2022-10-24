@@ -273,6 +273,7 @@ bool json::deserialize(std::string str, std::list<std::string>& lst)
 			else
 			{
 				val = str.substr(current, comma - current);
+				val = val.substr(0, val.size() - 1);//Exclude the last "]"
 				if (val.find(" ") == 0)
 				{
 					val = val.substr(1, val.size() - 1);

@@ -470,7 +470,73 @@ void position::init(void)
 
 OKExInstrument::OKExInstrument()
 {
+    instId = "";
+    instType = OKExEnums::instType::_NONE;
+    std::string baseCcy = "";
+    std::string quoteCcy = "";
+    std::string settleCcy = "";
+    std::string uly = "";
+    category = 0;
+    ctMulti = 0;
+    ctType = OKExEnums::ctType::_NONE;
+    ctVal = 0;
+    ctValCcy = "";
+    expTime = 0;
+    lever = 0;
+    listTime = 0;
+    lotSz = 0.0;
+    maxIcebergSz = 0;
+    maxLmtSz = 0;
+    maxMktSz = 0;
+    maxStopSz = 0;
+    maxTriggerSz = 0;
+    maxTwapSz = 0;
+    minSz = 0.0;
+    state = OKExEnums::insState::_NONE;
+    tickSz = 0.0;
+    priceUnit = 0;
 
+    isTrading = false;
+
+    bookDepth = 0;
+    bestAsk = books.end();
+    bestBid = books.end();
+    netPosition = 0.0;
+
+    ordList = new std::map<std::string, OKExOrder*>();
+    liveOrdList = new std::map<std::string, OKExOrder*>();
+
+    tradedCntBuy = 0;
+    tradedCntSell = 0;
+    tradedQtyBuy = 0;
+    tradedQtySell = 0;
+    tradedAmtBuy = 0;
+    tradedAmtSell = 0;
+
+    last = 0.0;
+    mid = 0.0;
+    open = 0.0;
+    high = 0.0;
+    low = 0.0;
+
+    ts = 0;
+    lastOptTs = 0;
+
+    //Factors
+    bookImbalance = 0.0;
+    currentRV = 0.0;
+    exeImbalance = 0.0;
+    sret = 0.0;
+    currentTradedQtyBuy = 0;
+    currentTradedQtySell = 0;
+
+    realizedVolatility = 0.0;
+    execAskCnt = 0;
+    execBidCnt = 0;
+    execAskVol = 0.0;
+    execBidVol = 0.0;
+    execAskAmt = 0.0;
+    execBidAmt = 0.0;
 }
 OKExInstrument::~OKExInstrument()
 {

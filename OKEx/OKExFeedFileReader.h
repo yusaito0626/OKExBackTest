@@ -4,7 +4,7 @@
 #include "OKExInstrument.h"
 #include "OKExParser.h"
 #include "OKExMessage.h"
-#include "Optimizer.h"
+#include "OKExOptimizer.h"
 #include "../utils/json.h"
 #include "../utils/Logging.h"
 

@@ -8,5 +8,6 @@ namespace GlobalVariables
 		std::string calandarFile = "";
 		std::string masterFilePath = "";
 		std::string outputFilePath = "";
+		std::string feedFilePath = "";
 	}
 };

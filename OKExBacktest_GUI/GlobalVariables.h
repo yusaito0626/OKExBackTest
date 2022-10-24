@@ -10,6 +10,7 @@ namespace GlobalVariables
 		extern std::string calandarFile;
 		extern std::string masterFilePath;
 		extern std::string outputFilePath;
+		extern std::string feedFilePath;
 	}
 };
 

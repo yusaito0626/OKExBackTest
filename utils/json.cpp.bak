@@ -5,7 +5,6 @@ bool json::deserialize(std::string str, std::map<std::string, std::string>& mp)
 	size_t start = str.find("{");
 	size_t end = str.find("}");
 	size_t current = 0;
-	bool lastElement = false;
 
 	if (start != std::string::npos && end != std::string::npos)
 	{
@@ -23,49 +22,25 @@ bool json::deserialize(std::string str, std::map<std::string, std::string>& mp)
 			if (comma < bracket && comma < curly)//the element is neither list nor map
 			{
 				colon = str.find(":",current);
-				key = str.substr(current, colon - current);
-				if (key.find(" ") == 0)
-				{
-					key = key.substr(1, key.size() - 1);
-				}
-				if (key.find("\"") == 0)
-				{
-					key = key.substr(1, key.size() - 2);
-				}
+				key = str.substr(current + 1, colon - current - 2);
 				val = str.substr(colon + 1, comma - colon - 1);
-				if (val.find(" ") == 0)
-				{
-					val = val.substr(1, val.size() - 1);
-				}
 				if (val.find("\"") == 0)
 				{
 					val = val.substr(1, val.size() - 2);
 				}
-				mp[key] = val;
+				mp.at(key) = val;
 				current = comma + 1;
 				comma = str.find(",",current);
-				if (comma == std::string::npos)
-				{
-					lastElement = true;
-				}
 			}
 			else if(bracket < curly)//the element is list
 			{
 				colon = str.find(":", current);
-				key = str.substr(current, colon - current);
-				if (key.find(" ") == 0)
-				{
-					key = key.substr(1, key.size() - 1);
-				}
-				if (key.find("\"") == 0)
-				{
-					key = key.substr(1, key.size() - 2);
-				}
+				key = str.substr(current + 1, colon - 1);
 				valend = findEndOfBrackets(str, colon + 1);
 				if (valend != std::string::npos)
 				{
-					val = str.substr(colon + 1, valend - colon);
-					mp[key] = val;
+					val = str.substr(colon + 1, valend);
+					mp.at(key) = val;
 					current = valend + 2;
 					comma = str.find(",", current);
 					bracket = str.find("[", current);
@@ -79,20 +54,12 @@ bool json::deserialize(std::string str, std::map<std::string, std::string>& mp)
 			else
 			{
 				colon = str.find(":", current);
-				key = str.substr(current, colon - current);
-				if (key.find(" ") == 0)
-				{
-					key = key.substr(1, key.size() - 1);
-				}
-				if (key.find("\"") == 0)
-				{
-					key = key.substr(1, key.size() - 2);
-				}
+				key = str.substr(current + 1, colon - current - 1);
 				valend = findEndOfBrackets(str, colon + 1);
 				if (valend != std::string::npos)
 				{
 					val = str.substr(colon + 1, valend - colon);
-					mp[key] = val;
+					mp.at(key) = val;
 					current = valend + 2;
 					comma = str.find(",", current);
 					curly = str.find("{", current);
@@ -104,63 +71,32 @@ bool json::deserialize(std::string str, std::map<std::string, std::string>& mp)
 				}
 			}
 		}
-		if (lastElement)
+		if (bracket != std::string::npos || curly != std::string::npos)//the last element is list or map
 		{
-			if (bracket != std::string::npos || curly != std::string::npos)//the last element is list or map
+			colon = str.find(":", current);
+			key = str.substr(current + 1, colon - 1);
+			valend = findEndOfBrackets(str, colon + 1);
+			if (valend != std::string::npos)
 			{
-				colon = str.find(":", current);
-				key = str.substr(current, colon - current);
-				if (key.find(" ") == 0)
-				{
-					key = key.substr(1, key.size() - 1);
-				}
-				if (key.find("\"") == 0)
-				{
-					key = key.substr(1, key.size() - 2);
-				}
-				valend = findEndOfBrackets(str, colon + 1);
-				if (valend != std::string::npos)
-				{
-					val = str.substr(colon + 1, valend - colon);
-					mp[key] = val;
-				}
-				else
-				{
-					mp.clear();
-					return false;
-				}
+				val = str.substr(colon + 1, valend);
+				mp.at(key) = val;
 			}
 			else
 			{
-				colon = str.find(":", current);
-				key = str.substr(current, colon - current);
-				if (key.find(" ") == 0)
-				{
-					key = key.substr(1, key.size() - 1);
-				}
-				if (key.find("\"") == 0)
-				{
-					key = key.substr(1, key.size() - 2);
-				}
-				val = str.substr(colon + 1, comma - colon - 1);
-				val = val.substr(0, val.size() - 1);//Exclude the last "}"
-				if (val.find(" ") == 0)
-				{
-					val = val.substr(1, val.size() - 1);
-				}
-				if (val.find("\"") == 0)
-				{
-					val = val.substr(1, val.size() - 2);
-				}
-				mp[key] = val;
-				//key = str.substr(current + 1, colon - 1);
-				//val = str.substr(colon + 1, comma - colon - 1);
-				//if (val.find("\"") == 0)
-				//{
-				//	val = val.substr(1, val.size() - 2);
-				//}
-				//mp[key] = val;
+				mp.clear();
+				return false;
 			}
+		}
+		else
+		{
+			colon = str.find(":", current);
+			key = str.substr(current + 1, colon - 1);
+			val = str.substr(colon + 1, comma - colon - 1);
+			if (val.find("\"") == 0)
+			{
+				val = val.substr(1, val.size() - 2);
+			}
+			mp.at(key) = val;
 		}
 		return true;
 	}
@@ -188,7 +124,7 @@ bool json::deserialize(std::string str, std::list<std::string>& lst)
 	size_t start = str.find("[");
 	size_t end = str.find("]");
 	size_t current = 0;
-	bool lastElement = false;
+
 	if (start != std::string::npos && end != std::string::npos)
 	{
 		//std::string rest = str.substr(start + 1);
@@ -202,11 +138,7 @@ bool json::deserialize(std::string str, std::list<std::string>& lst)
 		{
 			if (comma < bracket && comma < curly)//the element is neither list nor map
 			{
-				val = str.substr(current, comma - current);
-				if (val.find(" ") == 0)
-				{
-					val = val.substr(1, val.size() - 1);
-				}
+				val = str.substr(current + 1, comma - current - 1);
 				if (val.find("\"") == 0)
 				{
 					val = val.substr(1, val.size() - 2);
@@ -214,17 +146,13 @@ bool json::deserialize(std::string str, std::list<std::string>& lst)
 				lst.push_back(val);
 				current = comma + 1;
 				comma = str.find(",", current);
-				if (comma == std::string::npos)
-				{
-					lastElement = true;
-				}
 			}
 			else if (bracket < curly)//the element is list
 			{
-				valend = findEndOfBrackets(str, current);
+				valend = findEndOfBrackets(str, current + 1);
 				if (valend != std::string::npos)
 				{
-					val = str.substr(current, valend - current + 1);
+					val = str.substr(current + 1, valend);
 					lst.push_back(val);
 					current = valend + 2;
 					comma = str.find(",", current);
@@ -238,10 +166,10 @@ bool json::deserialize(std::string str, std::list<std::string>& lst)
 			}
 			else
 			{
-				valend = findEndOfBrackets(str, current);
+				valend = findEndOfBrackets(str, current + 1);
 				if (valend != std::string::npos)
 				{
-					val = str.substr(current, valend - current + 1);
+					val = str.substr(current + 1, valend);
 					lst.push_back(val);
 					current = valend + 2;
 					comma = str.find(",", current);
@@ -254,37 +182,29 @@ bool json::deserialize(std::string str, std::list<std::string>& lst)
 				}
 			}
 		}
-		if (lastElement)
+		if (bracket != std::string::npos || curly != std::string::npos)//the last element is list or map
 		{
-			if (bracket != std::string::npos || curly != std::string::npos)//the last element is list or map
+			valend = findEndOfBrackets(str, current + 1);
+			if (valend != std::string::npos)
 			{
-				valend = findEndOfBrackets(str, current);
-				if (valend != std::string::npos)
-				{
-					val = str.substr(current, valend - current + 1);
-					lst.push_back(val);
-				}
-				else
-				{
-					lst.clear();
-					return false;
-				}
+				val = str.substr(current + 1, valend);
+				lst.push_back(val);
 			}
 			else
 			{
-				val = str.substr(current, comma - current);
-				if (val.find(" ") == 0)
-				{
-					val = val.substr(1, val.size() - 1);
-				}
-				if (val.find("\"") == 0)
-				{
-					val = val.substr(1, val.size() - 2);
-				}
-				lst.push_back(val);
+				lst.clear();
+				return false;
 			}
 		}
-		
+		else
+		{
+			val = str.substr(current + 1, comma - current - 1);
+			if (val.find("\"") == 0)
+			{
+				val = val.substr(1, val.size() - 2);
+			}
+			lst.push_back(val);
+		}
 		return true;
 	}
 	else

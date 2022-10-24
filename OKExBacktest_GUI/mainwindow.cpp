@@ -251,7 +251,9 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
 
 void MainWindow::UpdateSettingTab(void)
 {
-
+    ui->lblOutputFilePath->setText(QString::fromStdString(GlobalVariables::OKExBacktest_GUI::outputFilePath));
+    ui->lblCalendarFile->setText(QString::fromStdString(GlobalVariables::OKExBacktest_GUI::calandarFile));
+    ui->lblMasterFilePath->setText(QString::fromStdString(GlobalVariables::OKExBacktest_GUI::masterFilePath));
 }
 
 void MainWindow::UpdatePairsTab(void)
@@ -299,31 +301,19 @@ void MainWindow::test(void)
     int startdate = ui->testTextEdit->toPlainText().toInt();
     int enddate = ui->testTextEdit_2->toPlainText().toInt();
 
-    int starttime = 6;
-    int i = starttime;
-
     bool IsFirstDay = true;
 
     std::map<int, Date>::iterator it_end = calendar->end();
     std::map<int, Date>::iterator it = calendar->GetDay(startdate, 0);
     std::map<int, Date>::iterator it_prev = calendar->GetDay(startdate, -1);
-    while (it_prev->second.weekday > 4)
-    {
-        --it_prev;
-    }
+
+    std::string feedFile = "";
 
     while (it->first <= enddate)
     {
-        if (it->second.weekday < 5)
-        {
-            ++it;
-            SetNewDate(it->first);
-        }
-        else
-        {
-            ++it;
-            
-        }
+        feedFile = GlobalVariables::OKExBacktest_GUI::feedFilePath + "\\OKExFeed_" + it->second.strday + ".log.gz";
+        feedReader->readFeedFile(feedFile);
+        ++it;
     }
     ui->testPushbutton->setText("tested.");
 }

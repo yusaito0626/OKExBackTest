@@ -36,7 +36,7 @@
     <ClInclude Include="OKExOrder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Optimizer.h">
+    <ClInclude Include="OKExOptimizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VirtualOMS.h">
@@ -62,7 +62,7 @@
     <ClCompile Include="OKExOrder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Optimizer.cpp">
+    <ClCompile Include="OKExOptimizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VirtualOMS.cpp">

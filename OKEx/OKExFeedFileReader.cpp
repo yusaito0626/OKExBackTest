@@ -65,5 +65,46 @@ std::map<std::string, OKExInstrument*>* OKExFeedFileReader::initializeInsList(st
 }
 void OKExFeedFileReader::readFeedFile(std::string feedFile)
 {
+	logWriter->addLog(Enums::logType::_INFO, "Start Reading Feed File.");
+	logWriter->addLog(Enums::logType::_INFO, "File Name:" + feedFile);
 
+	std::ifstream ifs(feedFile, std::ios::in | std::ios::binary);
+	boost::iostreams::filtering_istream binaryFile;
+	binaryFile.push(boost::iostreams::gzip_decompressor());
+	binaryFile.push(ifs);
+
+	//std::stream ifs(feedFile, std::ios::binary);
+	//ifs.seekg(0,std::ios::end);
+	//long long fsize = ifs.tellg();
+	//if(fsize < 0)
+	//{
+	//    File Not Found
+	//    return;
+	//}
+
+	std::string line;
+	OKExMktMsg* msg = new OKExMktMsg();
+	std::map<std::string, OKExInstrument*>::iterator ins;
+	std::map<std::string, OKExInstrument*>::iterator insend = insList->end();
+	bool blOptimize;
+
+	while (std::getline(binaryFile, line))
+	{
+		OKExParser::parsePushData(line, msg);
+		if (msg->blHasData)
+		{
+			ins = insList->find(msg->args["instId"]);
+			if (ins != insend)
+			{
+				blOptimize = ins->second->reflectMsg(msg);
+				if (blOptimize)
+				{
+					//Optimize
+					blOptimize = false;
+				}
+			}
+		}
+		msg->init();
+	}
+	
 }

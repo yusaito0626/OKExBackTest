@@ -107,6 +107,7 @@ struct dataOrder
 
 struct OKExMktMsg
 {
+    bool blHasData;
     std::map<std::string, std::string> args;
 	std::list<dataBooks> books;
 	std::list<dataTrades> trades;

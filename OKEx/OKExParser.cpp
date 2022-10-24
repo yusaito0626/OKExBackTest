@@ -19,6 +19,7 @@ void OKExParser::parsePushData(std::string str, OKExMktMsg* msg)
 	{
 		if (json::deserialize(js["arg"], args))
 		{
+			msg->blHasData = true;
 			msg->args = args;
 			if (args["channel"].substr(0, 5) == "books")
 			{

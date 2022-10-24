@@ -150,7 +150,7 @@
     <ClInclude Include="OKExMessage.h" />
     <ClInclude Include="OKExOrder.h" />
     <ClInclude Include="OKExParser.h" />
-    <ClInclude Include="Optimizer.h" />
+    <ClInclude Include="OKExOptimizer.h" />
     <ClInclude Include="VirtualOMS.h" />
   </ItemGroup>
   <ItemGroup>
@@ -160,7 +160,7 @@
     <ClCompile Include="OKExMessage.cpp" />
     <ClCompile Include="OKExOrder.cpp" />
     <ClCompile Include="OKExParser.cpp" />
-    <ClCompile Include="Optimizer.cpp" />
+    <ClCompile Include="OKExOptimizer.cpp" />
     <ClCompile Include="VirtualOMS.cpp" />
   </ItemGroup>
   <ItemGroup>

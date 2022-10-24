@@ -71,6 +71,7 @@ void dataTrades::init(void)
 
 OKExMktMsg::OKExMktMsg()
 {
+    blHasData = false;
     args.clear();
     books.clear();
     trades.clear();
@@ -83,6 +84,7 @@ OKExMktMsg::~OKExMktMsg()
 }
 void OKExMktMsg::init(void)
 {
+    blHasData = false;
     args.clear();
     books.clear();
     trades.clear();

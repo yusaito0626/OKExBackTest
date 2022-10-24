@@ -73,6 +73,7 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 	binaryFile.push(boost::iostreams::gzip_decompressor());
 	binaryFile.push(ifs);
 
+	//Memo: In case the file is written with binary data.
 	//std::stream ifs(feedFile, std::ios::binary);
 	//ifs.seekg(0,std::ios::end);
 	//long long fsize = ifs.tellg();
@@ -81,7 +82,26 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 	//    File Not Found
 	//    return;
 	//}
-
+	//unsigned int msgsize = 0;
+	//static const int BUF_SIZE = 1024;
+	//char msg[BUF_SIZE];
+	//unsigned char chsize[2];
+	//int inc = 0;
+	//long long pos = 0;
+	//while(pos < fsize)
+	// {
+	//		inc = sizeof(chsize);
+	//		ifs.read((char*)&msgsize,inc);
+	//		pos += inc;
+	//		if(msgsize > BUF_SIZE)
+	//		{
+	//			//Error Handling
+	//		}
+	//		memset(msg,0,BUF_SIZE);
+	//		ifs.read(msg,msgsize);
+	//		pos += msgsize;
+	//		//Do same thing.
+	// }
 	std::string line;
 	OKExMktMsg* msg = new OKExMktMsg();
 	std::map<std::string, OKExInstrument*>::iterator ins;

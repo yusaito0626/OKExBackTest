@@ -122,6 +122,7 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 					//Optimize
 					blOptimize = false;
 				}
+				++feedCount;
 			}
 		}
 		msg->init();

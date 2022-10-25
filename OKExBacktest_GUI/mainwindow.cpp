@@ -41,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
     Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr7, ui->lblBidQty7));
 
     UpdateCount = 0;
+    feedCount = 0;
+    lastfeedCount = 0;
 
     Displaytimer = new QTimer(this);
     Displaytimer->setInterval(1000);
@@ -68,7 +70,7 @@ void MainWindow::WriteLog(void)
     time_t now = time(NULL);
     struct tm* pnow = localtime(&now);
     QString strtime;
-    strtime.asprintf("%02d:%02d:%02d", pnow->tm_hour, pnow->tm_min, pnow->tm_sec);
+    strtime = strtime.asprintf("%02d:%02d:%02d", pnow->tm_hour, pnow->tm_min, pnow->tm_sec);
    
     std::string msg = "";
     Enums::logType type = Enums::logType::_NONE;
@@ -137,7 +139,10 @@ void MainWindow::UpdateDisplay(void)
         }
 
         //MainTab
-
+        lastfeedCount = feedCount;
+        feedCount = feedReader->feedCount;
+        ui->lblFeedAll->setText(QString("%L1").arg(feedCount));
+        ui->lblFeedInc->setText(QString("%L1").arg(feedCount - lastfeedCount));
 
         //SymbolTab
         if (displayedIns)
@@ -205,10 +210,14 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
             {
                 if (insbkit->second.sz > 0)
                 {
-                    it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
-                    it->second->setText(QString::number(insbkit->second.sz));
+                    it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit,0,'f',1));
+                    it->second->setText(QString("%L1").arg(insbkit->second.sz,0,'f',5));
                     ++insbkit;
                     break;
+                }
+                else
+                {
+                    ++insbkit;
                 }
             }
         }
@@ -229,8 +238,8 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
         {
             if (insbkit->second.sz > 0)
             {
-                it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
-                it->second->setText(QString::number(insbkit->second.sz));
+                it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
+                it->second->setText(QString("%L1").arg(insbkit->second.sz, 0, 'f', 5));
                 insbkit = insbkend;
             }
         }
@@ -240,10 +249,14 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
             {
                 if (insbkit->second.sz > 0)
                 {
-                    it->first->setText(QString::number((double)insbkit->first / ins->priceUnit));
-                    it->second->setText(QString::number(insbkit->second.sz));
+                    it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
+                    it->second->setText(QString("%L1").arg(insbkit->second.sz, 0, 'f', 5));
                     --insbkit;
                     break;
+                }
+                else
+                {
+                    --insbkit;
                 }
             }
         }

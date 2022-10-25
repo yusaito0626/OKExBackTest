@@ -74,6 +74,9 @@ private:
     int UpdateCount;
     bool AddColor;
 
+    int feedCount;
+    int lastfeedCount;
+
     QLabel* stbarDate;
     QLabel* stbarMsg;
     QLabel* stbarStatus;

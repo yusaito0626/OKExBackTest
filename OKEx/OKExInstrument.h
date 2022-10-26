@@ -14,7 +14,7 @@ public:
 	int liqOrd;
 	int numOfOrdBuy;
 	int numOfOrdSell;
-	std::map<std::string, OKExOrder*> liveOrders;
+	std::map<std::string, OKExOrder*>* liveOrders;
 	double szMyOrd;
 	int numOfMyOrd;
 	long long ts;
@@ -22,7 +22,7 @@ public:
 	book();
 	book(const book& obj);
 	~book();
-	void updateBook(OKExEnums::side sd,msgbook msg);
+	void updateBook(OKExEnums::side sd,msgbook* msg);
 	void init(void);
 	void addOrder(OKExOrder* ord);
 	OKExOrder* removeOrder(std::string baseOrdId);
@@ -115,9 +115,9 @@ public:
 	bool isTrading;
 
 	int bookDepth;
-	std::map<int, book> books;
-	std::map<int, book>::iterator bestAsk;
-	std::map<int, book>::iterator bestBid;
+	std::map<int, book*>* books;
+	std::map<int, book*>::iterator bestAsk;
+	std::map<int, book*>::iterator bestBid;
 	position longPosition;
 	position shortPosition;
 	double netPosition;
@@ -165,7 +165,7 @@ public:
 	void updateTrade(OKExMktMsg* msg);
 	void initializeBooks(OKExMktMsg* msg, int depth);
 	bool updateBooks(OKExMktMsg* msg);
-	std::map<int, book>::iterator findBest(int pr, OKExEnums::side side);
+	std::map<int, book*>::iterator findBest(int pr, OKExEnums::side side);
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);
 

@@ -195,8 +195,8 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
     //Books
     std::vector<std::pair<QLabel*, QLabel*>>::iterator it = Asks.begin();
     std::vector<std::pair<QLabel*, QLabel*>>::iterator bkend = Asks.end();
-    std::map<int, book>::iterator insbkit = ins->bestAsk;
-    std::map<int, book>::iterator insbkend = ins->books.end();
+    std::map<int, book*>::iterator insbkit = ins->bestAsk;
+    std::map<int, book*>::iterator insbkend = ins->books->end();
     while (it != bkend)
     {
         if (insbkit == insbkend)
@@ -208,10 +208,10 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
         {
             while (insbkit != insbkend)
             {
-                if (insbkit->second.sz > 0)
+                if (insbkit->second->sz > 0)
                 {
                     it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit,0,'f',1));
-                    it->second->setText(QString("%L1").arg(insbkit->second.sz,0,'f',5));
+                    it->second->setText(QString("%L1").arg(insbkit->second->sz,0,'f',5));
                     ++insbkit;
                     break;
                 }
@@ -226,7 +226,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
     it = Bids.begin();
     bkend = Bids.end();
     insbkit = ins->bestBid;
-    std::map<int, book>::iterator insbkbegin = ins->books.begin();
+    std::map<int, book*>::iterator insbkbegin = ins->books->begin();
     while (it != bkend)
     {
         if (insbkit == insbkend)
@@ -236,10 +236,10 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
         }
         else if (insbkit == insbkbegin)
         {
-            if (insbkit->second.sz > 0)
+            if (insbkit->second->sz > 0)
             {
                 it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
-                it->second->setText(QString("%L1").arg(insbkit->second.sz, 0, 'f', 5));
+                it->second->setText(QString("%L1").arg(insbkit->second->sz, 0, 'f', 5));
                 insbkit = insbkend;
             }
         }
@@ -247,10 +247,10 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
         {
             while (insbkit != insbkend)
             {
-                if (insbkit->second.sz > 0)
+                if (insbkit->second->sz > 0)
                 {
                     it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
-                    it->second->setText(QString("%L1").arg(insbkit->second.sz, 0, 'f', 5));
+                    it->second->setText(QString("%L1").arg(insbkit->second->sz, 0, 'f', 5));
                     --insbkit;
                     break;
                 }

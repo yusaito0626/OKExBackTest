@@ -113,7 +113,7 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 		OKExParser::parsePushData(line, msg);
 		if (msg->blHasData)
 		{
-			ins = insList->find(msg->args["instId"]);
+			ins = insList->find(msg->args->at("instId"));
 			if (ins != insend)
 			{
 				blOptimize = ins->second->reflectMsg(msg);

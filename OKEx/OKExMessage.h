@@ -14,8 +14,8 @@ struct msgbook
 };
 struct dataBooks
 {
-    std::list<msgbook> bids;
-    std::list<msgbook> asks;
+    std::list<msgbook*>* bids;
+    std::list<msgbook*>* asks;
     long long ts;
     int checkSum;
 
@@ -108,9 +108,9 @@ struct dataOrder
 struct OKExMktMsg
 {
     bool blHasData;
-    std::map<std::string, std::string> args;
-	std::list<dataBooks> books;
-	std::list<dataTrades> trades;
+    std::map<std::string, std::string>* args;
+	std::list<dataBooks*>* books;
+	std::list<dataTrades*>* trades;
     OKExMktMsg();
     ~OKExMktMsg();
     void init(void);

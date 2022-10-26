@@ -118,6 +118,8 @@ public:
 	std::map<int, book*>* books;
 	std::map<int, book*>::iterator bestAsk;
 	std::map<int, book*>::iterator bestBid;
+	int lowestBook;
+	int highestBook;
 	position longPosition;
 	position shortPosition;
 	double netPosition;
@@ -165,6 +167,7 @@ public:
 	void updateTrade(OKExMktMsg* msg);
 	void initializeBooks(OKExMktMsg* msg, int depth);
 	bool updateBooks(OKExMktMsg* msg);
+	void reshapeBooks(void);
 	std::map<int, book*>::iterator findBest(int pr, OKExEnums::side side);
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);

@@ -218,6 +218,12 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                 else
                 {
                     ++insbkit;
+                    if (insbkit == insbkend)
+                    {
+                        it->first->setText("");
+                        it->second->setText("");
+                        break;
+                    }
                 }
             }
         }
@@ -242,10 +248,16 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                 it->second->setText(QString("%L1").arg(insbkit->second->sz, 0, 'f', 5));
                 insbkit = insbkend;
             }
+            else
+            {
+                it->first->setText("");
+                it->second->setText("");
+                insbkit = insbkend;
+            }
         }
         else
         {
-            while (insbkit != insbkend)
+            while (insbkit != insbkbegin)
             {
                 if (insbkit->second->sz > 0)
                 {
@@ -257,6 +269,21 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                 else
                 {
                     --insbkit;
+                    if (insbkit == insbkbegin)
+                    {
+                        if (insbkit->second->sz > 0)
+                        {
+                            it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
+                            it->second->setText(QString("%L1").arg(insbkit->second->sz, 0, 'f', 5));
+                            insbkit = insbkend;
+                        }
+                        else
+                        {
+                            it->first->setText("");
+                            it->second->setText("");
+                            insbkit = insbkend;
+                        }
+                    }
                 }
             }
         }

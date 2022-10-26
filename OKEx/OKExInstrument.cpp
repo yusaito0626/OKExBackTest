@@ -503,6 +503,8 @@ OKExInstrument::OKExInstrument()
     books = new std::map<int, book*>();
     bestAsk = books->end();
     bestBid = books->end();
+    lowestBook = 0;
+    highestBook = 0;
     netPosition = 0.0;
 
     ordList = new std::map<std::string, OKExOrder*>();
@@ -566,6 +568,18 @@ void OKExInstrument::updateTrade(OKExMktMsg* msg)
                 realizedVolatility += pow(log(last / (*it)->px), 2);
             }
             last = (*it)->px;
+            if (open == 0)
+            {
+                open = last;
+            }
+            if (low == 0 || low > last)
+            {
+                low = last;
+            }
+            if (high == 0 || high < last)
+            {
+                high = last;
+            }
             if (ctType == OKExEnums::ctType::_INVERSE)
             {
                 if ((*it)->side == OKExEnums::side::_BUY)//this means the market order is BUY
@@ -751,6 +765,8 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
             bk->px = askpr;
             books->emplace(askpr, bk);
         }
+        highestBook = askpr;
+        lowestBook = bidpr;
         bidpr -= tick;
         askpr += tick;
         ++i;
@@ -762,6 +778,54 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
     if (tempbestbid > 0)
     {
         bestBid = books->find(tempbestbid);
+    }
+}
+
+void OKExInstrument::reshapeBooks(void)
+{
+    int bidDepth = bestBid->first - lowestBook;
+    int askDepth = highestBook - bestAsk->first;
+
+    int orgPr;
+    int destPr;
+
+    if (bidDepth > askDepth)//lowest -> highest
+    {
+        while (bidDepth > askDepth)
+        {
+            orgPr = lowestBook;
+            destPr = highestBook + tickSz * priceUnit;
+            book* temp = books->at(orgPr);
+            books->erase(orgPr);
+            temp->init();
+            temp->px = (double)destPr / priceUnit;
+            books->emplace(destPr, temp);
+            lowestBook += tickSz * priceUnit;
+            highestBook = destPr;
+            bidDepth = bestBid->first - lowestBook;
+            askDepth = highestBook - bestAsk->first;
+        }
+    }
+    else if (bidDepth < askDepth)
+    {
+        while (bidDepth < askDepth)
+        {
+            orgPr = highestBook;
+            destPr = lowestBook - tickSz * priceUnit;
+            if (destPr <= 0)
+            {
+                break;
+            }
+            book* temp = books->at(orgPr);
+            books->erase(orgPr);
+            temp->init();
+            temp->px = (double)destPr / priceUnit;
+            books->emplace(destPr, temp);
+            lowestBook = destPr;
+            highestBook -= tickSz * priceUnit;
+            bidDepth = bestBid->first - lowestBook;
+            askDepth = highestBook - bestAsk->first;
+        }
     }
 }
 
@@ -886,8 +950,11 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                             bestAsk = temp_ask;
                         }
                     }
-                    //Reshape books
                 }
+            }
+            if (bestBid->first - lowestBook < bookDepth / 4)
+            {
+                reshapeBooks();
             }
             bookitend = (*it)->asks->end();
             for (bookit = (*it)->asks->begin(); bookit != bookitend; ++bookit)
@@ -944,8 +1011,11 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                             bestBid = temp_bid;
                         }
                     }
-                    //Reshape books
                 }
+            }
+            if (highestBook - bestAsk->first < bookDepth / 4)
+            {
+                reshapeBooks();
             }
             (*it)->init();
         }
@@ -954,6 +1024,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             break;
         }
     }
+    
     return true;
 }
 
@@ -964,7 +1035,7 @@ bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
     {
         if (msg->args->at("action") == "snapshot")
         {
-            initializeBooks(msg,bookDepth);
+            initializeBooks(msg,1000);
         }
         else if(msg->args->at("action") == "update")
         {

@@ -296,6 +296,7 @@ void MainWindow::UpdateSettingTab(void)
     ui->lblOutputFilePath->setText(QString::fromStdString(GlobalVariables::OKExBacktest_GUI::outputFilePath));
     ui->lblCalendarFile->setText(QString::fromStdString(GlobalVariables::OKExBacktest_GUI::calandarFile));
     ui->lblMasterFilePath->setText(QString::fromStdString(GlobalVariables::OKExBacktest_GUI::masterFilePath));
+    ui->lblFeedFilePath->setText(QString::fromStdString(GlobalVariables::OKExBacktest_GUI::feedFilePath));
 }
 
 void MainWindow::UpdatePairsTab(void)

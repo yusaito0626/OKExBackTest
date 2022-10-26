@@ -1,4 +1,7 @@
 #pragma once
+
+#include "OKExInstrument.h"
+
 class OKExOptimizer
 {
 	OKExOptimizer() {};
@@ -7,7 +10,14 @@ class OKExOptimizer
 public:
 	~OKExOptimizer();
 
+	void optimize(OKExInstrument* ins);
 
+	void calcFactors(OKExInstrument* ins);
+
+	double calcBookImbalance(OKExInstrument* ins);
+	double calcExecImbalance(OKExInstrument* ins);
+	double calcTradeQtyImbalance(OKExInstrument* ins);
+	double calcSkewWgtQtyImbalance(OKExInstrument* ins);
 
 	static OKExOptimizer* getInstance(void)
 	{

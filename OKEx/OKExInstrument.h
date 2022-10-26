@@ -151,6 +151,10 @@ public:
 	int currentTradedQtyBuy;
 	int currentTradedQtySell;
 
+	//Setting
+	int BITicks;
+	double BIDecayingParam;
+
 	double realizedVolatility;
 	int execAskCnt;
 	int execBidCnt;

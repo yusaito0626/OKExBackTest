@@ -3,6 +3,9 @@
 #include "OKExEnums.h"
 #include "OKExOrder.h"
 #include "OKExMessage.h"
+
+#include "../utils/ring.h"
+
 class book
 {
 public:
@@ -154,6 +157,38 @@ public:
 	//Setting
 	int BITicks;
 	double BIDecayingParam;
+	int EIPeriod;
+	double EIDecayingParam;
+	int TQIPeriod;
+	double TQIDecayingParam;
+	int SkewWgtEIPeriod;
+	double SkewWgtEIDecayingParam;
+
+	//Ring Buffer
+	static const int RINGSIZE = 180;
+	int ringIdx;
+	int ringDataCount;
+	long long lastRingUpdatedTime;
+	ring<double>* RVRing[60];
+	ring<double>* netPosRing[60];
+	ring<double>* bookImbalanceRing[60];
+	ring<double>* execImbalanceRing[60];
+	ring<int>* bestAskRing[60];
+	ring<int>* bestBidRing[60];
+	ring<int>* execBidCntRing[60];
+	ring<int>* execAskCntRing[60];
+	ring<double>* execBidQtyRing[60];
+	ring<double>* execAskQtyRing[60];
+	ring<double>* SkewWgtExecBidQtyRing[60];
+	ring<double>* SkewWgtExecAskQtyRing[60];
+	ring<int>* tradeCntBuyRing[60];
+	ring<int>* tradeCntSellRing[60];
+	ring<double>* tradeQtyBuyRing[60];
+	ring<double>* tradeQtySellRing[60];
+	ring<double>* SkewWgtTradeQtyBuyRing[60];
+	ring<double>* SkewWgtTradeQtySellRing[60];
+	ring<double>* midRing[60];
+	ring<double>* midMARing[60];
 
 	double realizedVolatility;
 	int execAskCnt;
@@ -162,6 +197,8 @@ public:
 	double execBidVol;
 	double execAskAmt;
 	double execBidAmt;
+	double skewWgtExecAsk;
+	double skewWgtExecBid;;
 
 	OKExInstrument();
 	~OKExInstrument();

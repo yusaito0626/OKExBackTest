@@ -1,4 +1,7 @@
 #pragma once
+
+#define NULL 0
+
 template <typename T>
 class ring
 {
@@ -20,7 +23,7 @@ public:
 	T peek(void);
 	T item(int i);
 	T* items(void);
-	int size(void){return _size};
-	int current(void){return _current};
+	int size(void) { return _size; };
+	int current(void) { return _current; };
 };
 

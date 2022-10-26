@@ -534,6 +534,56 @@ OKExInstrument::OKExInstrument()
     currentTradedQtyBuy = 0;
     currentTradedQtySell = 0;
 
+    ringIdx = -1;
+    ringDataCount = 0;
+    lastRingUpdatedTime = 0;
+    for (int i = 0; i < 60; ++i)
+    {
+        RVRing[i] = new ring<double>(RINGSIZE);
+        netPosRing[i] = new ring<double>(RINGSIZE);
+        bookImbalanceRing[i] = new ring<double>(RINGSIZE);
+        execImbalanceRing[i] = new ring<double>(RINGSIZE);
+        bestAskRing[i] = new ring<int>(RINGSIZE);
+        bestBidRing[i] = new ring<int>(RINGSIZE);
+        execBidCntRing[i] = new ring<int>(RINGSIZE);
+        execAskCntRing[i] = new ring<int>(RINGSIZE);
+        execBidQtyRing[i] = new ring<double>(RINGSIZE);
+        execAskQtyRing[i] = new ring<double>(RINGSIZE);
+        SkewWgtExecBidQtyRing[i] = new ring<double>(RINGSIZE);
+        SkewWgtExecAskQtyRing[i] = new ring<double>(RINGSIZE);
+        tradeCntBuyRing[i] = new ring<int>(RINGSIZE);
+        tradeCntSellRing[i] = new ring<int>(RINGSIZE);
+        tradeQtyBuyRing[i] = new ring<double>(RINGSIZE);
+        tradeQtySellRing[i] = new ring<double>(RINGSIZE);
+        SkewWgtTradeQtyBuyRing[i] = new ring<double>(RINGSIZE);
+        SkewWgtTradeQtySellRing[i] = new ring<double>(RINGSIZE);
+        midRing[i] = new ring<double>(RINGSIZE);
+        midMARing[i] = new ring<double>(RINGSIZE);
+        for (int j = 0; j < RINGSIZE; ++j)
+        {
+            RVRing[i]->add(0.0);
+            netPosRing[i]->add(0.0);
+            bookImbalanceRing[i]->add(0.0);
+            execImbalanceRing[i]->add(0.0);
+            bestAskRing[i]->add(0);
+            bestBidRing[i]->add(0);
+            execBidCntRing[i]->add(0);
+            execAskCntRing[i]->add(0);
+            execBidQtyRing[i]->add(0.0);
+            execAskQtyRing[i]->add(0.0);
+            SkewWgtExecBidQtyRing[i]->add(0.0);
+            SkewWgtExecAskQtyRing[i]->add(0.0);
+            tradeCntBuyRing[i]->add(0);
+            tradeCntSellRing[i]->add(0);
+            tradeQtyBuyRing[i]->add(0.0);
+            tradeQtySellRing[i]->add(0.0);
+            SkewWgtTradeQtyBuyRing[i]->add(0.0);
+            SkewWgtTradeQtySellRing[i]->add(0.0);
+            midRing[i]->add(0.0);
+            midMARing[i]->add(0.0);
+        }
+    }
+
     realizedVolatility = 0.0;
     execAskCnt = 0;
     execBidCnt = 0;

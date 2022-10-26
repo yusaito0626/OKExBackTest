@@ -13,6 +13,7 @@ public:
 	void optimize(OKExInstrument* ins);
 
 	void calcFactors(OKExInstrument* ins);
+	void updateRings(OKExInstrument* ins);
 
 	double calcBookImbalance(OKExInstrument* ins);
 	double calcExecImbalance(OKExInstrument* ins);

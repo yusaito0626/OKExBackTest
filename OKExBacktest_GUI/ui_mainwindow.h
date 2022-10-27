@@ -158,6 +158,8 @@ public:
     QLabel *lblMasterFilePath;
     QLabel *label_38;
     QLabel *lblCalendarFile;
+    QLabel *lblParamFile;
+    QLabel *label_39;
     QWidget *tab;
     QPushButton *testPushbutton;
     QPlainTextEdit *testTextEdit;
@@ -737,6 +739,18 @@ public:
         lblCalendarFile->setFont(font);
         lblCalendarFile->setLayoutDirection(Qt::LeftToRight);
         lblCalendarFile->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
+        lblParamFile = new QLabel(groupBox_6);
+        lblParamFile->setObjectName("lblParamFile");
+        lblParamFile->setGeometry(QRect(120, 120, 191, 16));
+        lblParamFile->setFont(font);
+        lblParamFile->setLayoutDirection(Qt::LeftToRight);
+        lblParamFile->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
+        label_39 = new QLabel(groupBox_6);
+        label_39->setObjectName("label_39");
+        label_39->setGeometry(QRect(20, 120, 91, 16));
+        label_39->setFont(font);
+        label_39->setLayoutDirection(Qt::LeftToRight);
+        label_39->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         tabWidget->addTab(tabSetting, QString());
         tab = new QWidget();
         tab->setObjectName("tab");
@@ -877,6 +891,8 @@ public:
         lblMasterFilePath->setText(QCoreApplication::translate("MainWindow", "Master file path", nullptr));
         label_38->setText(QCoreApplication::translate("MainWindow", "Calendar file:", nullptr));
         lblCalendarFile->setText(QCoreApplication::translate("MainWindow", "Calendar file", nullptr));
+        lblParamFile->setText(QCoreApplication::translate("MainWindow", "Param file", nullptr));
+        label_39->setText(QCoreApplication::translate("MainWindow", "Param file:", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tabSetting), QCoreApplication::translate("MainWindow", "Setting", nullptr));
         testPushbutton->setText(QCoreApplication::translate("MainWindow", "Start", nullptr));
         testTextEdit->setPlainText(QString());

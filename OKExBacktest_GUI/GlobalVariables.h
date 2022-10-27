@@ -11,6 +11,7 @@ namespace GlobalVariables
 		extern std::string masterFilePath;
 		extern std::string outputFilePath;
 		extern std::string feedFilePath;
+		extern std::string paramFile;
 	}
 };
 

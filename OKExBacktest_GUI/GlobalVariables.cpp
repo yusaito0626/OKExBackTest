@@ -9,5 +9,6 @@ namespace GlobalVariables
 		std::string masterFilePath = "";
 		std::string outputFilePath = "";
 		std::string feedFilePath = "";
+		std::string paramFile = "";
 	}
 };

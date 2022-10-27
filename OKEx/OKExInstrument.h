@@ -95,6 +95,7 @@ public:
 	std::string quoteCcy;
 	std::string settleCcy;
 	std::string uly;
+	std::string alias;
 	int category;
 	int ctMulti;
 	OKExEnums::ctType ctType;
@@ -213,7 +214,7 @@ public:
 	~OKExInstrument();
 
 	void setInstrumentData(std::map<std::string, std::string> mp);
-	void setParams(std::list<std::string> params);
+	void setParams(std::map<std::string, std::string> params);
 	void updateTrade(OKExMktMsg* msg);
 	void initializeBooks(OKExMktMsg* msg, int depth);
 	bool updateBooks(OKExMktMsg* msg);

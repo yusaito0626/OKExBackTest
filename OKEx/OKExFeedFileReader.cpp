@@ -63,6 +63,30 @@ std::map<std::string, OKExInstrument*>* OKExFeedFileReader::initializeInsList(st
 	}
 	return insList;
 }
+
+void OKExFeedFileReader::readParamFile(std::string paramfile)
+{
+	std::ifstream fs(paramfile);
+	std::string line;
+	if (fs)
+	{
+		if (insList)
+		{
+			while (std::getline(fs, line))
+			{
+				std::map<std::string, std::string> mp;
+				json::deserialize(line, mp);
+				OKExInstrument* ins = findInsByAlias(mp["alias"],mp["uly"]);
+				if (ins)
+				{
+					ins->setParams(mp);
+				}
+			}
+		}
+	}
+
+}
+
 void OKExFeedFileReader::readFeedFile(std::string feedFile)
 {
 	logWriter->addLog(Enums::logType::_INFO, "Start Reading Feed File.");
@@ -120,6 +144,7 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 				if (blOptimize)
 				{
 					//Optimize
+					optimizer->calcFactors(ins->second);
 					blOptimize = false;
 				}
 				++feedCount;
@@ -128,4 +153,57 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 		msg->init();
 	}
 	
+}
+
+OKExInstrument* OKExFeedFileReader::findInsByAlias(std::string alias, std::string uly)
+{
+	if (insList)
+	{
+		std::map<std::string, OKExInstrument*>::iterator it;
+		std::map<std::string, OKExInstrument*>::iterator itend = insList->end();
+		if (uly == "")//SPOT
+		{
+			if (insList->find(alias) != itend)
+			{
+				return insList->at(alias);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+		else if(alias == "this_week" || alias == "next_week" || alias == "quarter" || alias == "next_quarter")//Future
+		{
+			for (it = insList->begin(); it != itend; ++it)
+			{
+				if (it->second->uly == uly && it->second->alias == alias)
+				{
+					break;
+				}
+			}
+			if (it != itend)
+			{
+				return it->second;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+		else//Perpetual
+		{
+			if (insList->find(alias) != itend)
+			{
+				return insList->at(alias);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+	}
+	else
+	{
+		return nullptr;
+	}
 }

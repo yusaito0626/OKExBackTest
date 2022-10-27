@@ -69,6 +69,10 @@ void ReadConfig(std::string configfilepath)
             {
                 GlobalVariables::OKExBacktest_GUI::feedFilePath = value;
             }
+            else if (variable == "paramFile")
+            {
+                GlobalVariables::OKExBacktest_GUI::paramFile = value;
+            }
         }
     }
 }

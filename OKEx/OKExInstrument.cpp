@@ -245,6 +245,7 @@ bool book::executeOrder(dataOrder* trd)
 void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
 {
 	instId = mp["instId"];
+    alias = mp["alias"];
 
     if (mp["instType"] == "SPOT")
     {
@@ -597,9 +598,53 @@ OKExInstrument::~OKExInstrument()
 
 }
 
-void OKExInstrument::setParams(std::list<std::string> params)
+void OKExInstrument::setParams(std::map<std::string, std::string> params)
 {
-
+    std::map<std::string, std::string>::iterator itend = params.end();
+    if (params.find("BITicks") != itend)
+    {
+        BITicks = stoi(params["BITicks"]);
+    }
+    if (params.find("BIDecayingParam") != itend)
+    {
+        BIDecayingParam = stod(params["BIDecayingParam"]);
+    }
+    if (params.find("EIPeriod") != itend)
+    {
+        EIPeriod = stoi(params["EIPeriod"]);
+    }
+    if (params.find("EIDecayingParam") != itend)
+    {
+        EIDecayingParam = stod(params["EIDecayingParam"]);
+    }
+    if (params.find("TQIPeriod") != itend)
+    {
+        TQIPeriod = stoi(params["TQIPeriod"]);
+    }
+    if (params.find("TQIDecayingParam") != itend)
+    {
+        TQIDecayingParam = stod(params["TQIDecayingParam"]);
+    }
+    if (params.find("SkewWgtEIPeriod") != itend)
+    {
+        SkewWgtEIPeriod = stoi(params["SkewWgtEIPeriod"]);
+    }
+    if (params.find("SkewWgtEIDecayingParam") != itend)
+    {
+        SkewWgtEIDecayingParam = stod(params["SkewWgtEIDecayingParam"]);
+    }
+    if (params.find("MAPeriod") != itend)
+    {
+        MAPeriod = stoi(params["MAPeriod"]);
+    }
+    if (params.find("RVPeriod") != itend)
+    {
+        RVPeriod = stoi(params["RVPeriod"]);
+    }
+    if (params.find("histReturnPeriod") != itend)
+    {
+        histReturnPeriod = stoi(params["histReturnPeriod"]);
+    }
 }
 void OKExInstrument::updateTrade(OKExMktMsg* msg)
 {

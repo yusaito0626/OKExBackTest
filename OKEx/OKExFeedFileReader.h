@@ -22,7 +22,10 @@ public:
 	~OKExFeedFileReader();
 	void initialize(void);
 	std::map<std::string, OKExInstrument*>* initializeInsList(std::string masterfile);
+	void readParamFile(std::string paramfile);
 	void readFeedFile(std::string feedFile);
+
+	OKExInstrument* findInsByAlias(std::string alias, std::string uly);
 
 	static OKExFeedFileReader* getInstance(void)
 	{

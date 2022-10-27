@@ -8,9 +8,82 @@ void OKExOptimizer::calcFactors(OKExInstrument* ins)
 }
 void OKExOptimizer::updateRings(OKExInstrument* ins)
 {
-
+	if (ins->ts - ins->lastRingUpdatedTime > 1000)
+	{
+		if (ins->lastRingUpdatedTime == 0)
+		{
+			ins->lastRingUpdatedTime = (long long)floor((double)ins->ts / 1000) * 1000;
+		}
+		else
+		{
+			int cnt = 0;
+			while (ins->ts - ins->lastRingUpdatedTime > 0)
+			{
+				++ins->ringIdx;
+				if (ins->ringIdx > 59)
+				{
+					ins->ringIdx = 0;
+				}
+				ins->lastRingUpdatedTime += 1000;
+				ins->RVRing[ins->ringIdx]->add(ins->realizedVolatility);
+				ins->netPosRing[ins->ringIdx]->add(ins->netPosition);
+				ins->bookImbalanceRing[ins->ringIdx]->add(ins->bookImbalance);
+				ins->execImbalanceRing[ins->ringIdx]->add(ins->exeImbalance);
+				ins->bestAskRing[ins->ringIdx]->add(ins->bestAsk->first);
+				ins->bestBidRing[ins->ringIdx]->add(ins->bestBid->first);
+				ins->execBidCntRing[ins->ringIdx]->add(ins->execBidCnt);
+				ins->execAskCntRing[ins->ringIdx]->add(ins->execAskCnt);
+				ins->execBidQtyRing[ins->ringIdx]->add(ins->execBidVol);
+				ins->execAskQtyRing[ins->ringIdx]->add(ins->execAskVol);
+				ins->SkewWgtExecBidQtyRing[ins->ringIdx]->add(ins->skewWgtExecBid);
+				ins->SkewWgtExecAskQtyRing[ins->ringIdx]->add(ins->skewWgtExecAsk);
+				ins->tradeCntBuyRing[ins->ringIdx]->add(ins->tradedCntBuy);
+				ins->tradeCntSellRing[ins->ringIdx]->add(ins->tradedCntSell);
+				ins->tradeQtyBuyRing[ins->ringIdx]->add(ins->tradedQtyBuy);
+				ins->tradeQtySellRing[ins->ringIdx]->add(ins->tradedQtySell);
+				ins->SkewWgtTradeQtyBuyRing[ins->ringIdx]->add(ins->skewWgtTradedQtyBuy);
+				ins->SkewWgtTradeQtySellRing[ins->ringIdx]->add(ins->skewWgtTradedQtySell);
+				ins->midRing[ins->ringIdx]->add(ins->mid);
+				++ins->ringDataCount;
+				ins->MAMid = calcMidMA(ins);
+				ins->midMARing[ins->ringIdx]->add(ins->MAMid);
+				++cnt;
+				if (cnt > 10000)
+				{
+					break;
+				}
+			}
+		}
+	}
 }
 
+double OKExOptimizer::calcMidMA(OKExInstrument* ins)
+{
+	if (ins->ringDataCount <= ins->MAPeriod)
+	{
+		return 0;
+	}
+	double MAMid = 0;
+	int i = 0;
+	int idx = 0;
+	int rel = 0;
+	while (i < ins->MAPeriod)
+	{
+		idx = ins->ringIdx - i;
+		while (idx < 0)
+		{
+			idx += 60;
+			if (idx < 0 || idx <= ins->ringIdx)
+			{
+				--rel;
+			}
+		}
+		MAMid += ins->midRing[idx]->relative(rel);
+		++i;
+	}
+	MAMid /= ins->MAPeriod;
+	return MAMid;
+}
 double OKExOptimizer::calcBookImbalance(OKExInstrument* ins)
 {
 	std::map<int, book*>::iterator bid = ins->bestBid;

@@ -15,6 +15,7 @@ public:
 	void calcFactors(OKExInstrument* ins);
 	void updateRings(OKExInstrument* ins);
 
+	double calcMidMA(OKExInstrument* ins);
 	double calcBookImbalance(OKExInstrument* ins);
 	double calcExecImbalance(OKExInstrument* ins);
 	double calcTradeQtyImbalance(OKExInstrument* ins);

@@ -132,16 +132,20 @@ public:
 
 	int tradedCntBuy;
 	int tradedCntSell;
-	int tradedQtyBuy;
-	int tradedQtySell;
-	int tradedAmtBuy;
-	int tradedAmtSell;
+	double tradedQtyBuy;
+	double tradedQtySell;
+	double tradedAmtBuy;
+	double tradedAmtSell;
+	double skewWgtTradedQtyBuy;
+	double skewWgtTradedQtySell;
+
 
 	double last;
 	double mid;
 	double open;
 	double high;
 	double low;
+	double MAMid;
 
 	long long ts;
 	long long lastOptTs;
@@ -163,6 +167,7 @@ public:
 	double TQIDecayingParam;
 	int SkewWgtEIPeriod;
 	double SkewWgtEIDecayingParam;
+	int MAPeriod;
 
 	//Ring Buffer
 	static const int RINGSIZE = 180;
@@ -213,6 +218,5 @@ public:
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);
 
-	void updateRings(void);
 };
 

@@ -238,5 +238,18 @@ namespace OKExEnums
         _OPTIONS = 4,
         _TRADING = 5
     };
-
+    enum struct ticketType
+    {
+        _NONE = 0,
+        _SEND_NEW = 1,
+        _SEND_MOD = 2,
+        _SEND_CAN = 3,
+        _ACK_NEW = 11,
+        _ACK_MOD = 12,
+        _ACK_CAN = 13,
+        _REJ_NEW = 21,
+        _REJ_MOD = 22,
+        _REJ_CAN = 23,
+        _EXEC = 30
+    };
 }

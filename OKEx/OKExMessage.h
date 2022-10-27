@@ -128,6 +128,7 @@ struct ackTikcet
 
 struct ordTicket
 {
+    OKExEnums::ticketType tktType;
     std::string instId;
     OKExEnums::tradeMode tdMode;
     std::string ccy;

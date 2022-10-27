@@ -143,6 +143,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="includes.h" />
     <ClInclude Include="OKExEnums.h" />
     <ClInclude Include="OKExFeedFileReader.h" />
@@ -154,6 +155,7 @@
     <ClInclude Include="VirtualOMS.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GlobalVariables.cpp" />
     <ClCompile Include="OKExEnums.cpp" />
     <ClCompile Include="OKExFeedFileReader.cpp" />
     <ClCompile Include="OKExInstrument.cpp" />

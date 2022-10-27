@@ -319,6 +319,7 @@ void MainWindow::InitializeObjects(void)
     calendar->Initialize(GlobalVariables::OKExBacktest_GUI::calandarFile);
     feedReader->initialize();
     insList = feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\master.txt");
+    feedReader->readParamFile(GlobalVariables::OKExBacktest_GUI::paramFile);
 }
 
 void MainWindow::SetNewDate(int date)

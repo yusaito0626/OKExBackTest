@@ -153,8 +153,10 @@ public:
 	//Factors
 	double bookImbalance;
 	double currentRV;
-	double exeImbalance;
-	double sret;
+	double execImbalance;
+	double tradeQtyImbalance;
+	double skewWgtExecImbalance;
+	double hret;
 	int currentTradedQtyBuy;
 	int currentTradedQtySell;
 
@@ -168,6 +170,8 @@ public:
 	int SkewWgtEIPeriod;
 	double SkewWgtEIDecayingParam;
 	int MAPeriod;
+	int RVPeriod;
+	int histReturnPeriod;
 
 	//Ring Buffer
 	static const int RINGSIZE = 180;

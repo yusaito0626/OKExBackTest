@@ -529,8 +529,8 @@ OKExInstrument::OKExInstrument()
     //Factors
     bookImbalance = 0.0;
     currentRV = 0.0;
-    exeImbalance = 0.0;
-    sret = 0.0;
+    execImbalance = 0.0;
+    hret = 0.0;
     currentTradedQtyBuy = 0;
     currentTradedQtySell = 0;
 

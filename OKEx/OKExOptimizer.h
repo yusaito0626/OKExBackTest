@@ -19,7 +19,7 @@ public:
 	double calcBookImbalance(OKExInstrument* ins);
 	double calcExecImbalance(OKExInstrument* ins);
 	double calcTradeQtyImbalance(OKExInstrument* ins);
-	double calcSkewWgtQtyImbalance(OKExInstrument* ins);
+	double calcSkewWgtExecImbalance(OKExInstrument* ins);
 
 	static OKExOptimizer* getInstance(void)
 	{

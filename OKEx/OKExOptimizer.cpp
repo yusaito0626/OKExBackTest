@@ -4,7 +4,40 @@ OKExOptimizer* optimizer = OKExOptimizer::getInstance();
 
 void OKExOptimizer::calcFactors(OKExInstrument* ins)
 {
-
+	if (ins->ringDataCount > ins->RVPeriod)
+	{
+		int idx = 0;
+		int rel = 0;
+		idx = ins->ringIdx - ins->RVPeriod;
+		while (idx < 0)
+		{
+			idx += 60;
+			if (idx < 0 || idx <= ins->ringIdx)
+			{
+				--rel;
+			}
+		}
+		ins->currentRV = pow(ins->realizedVolatility - ins->RVRing[idx]->relative(rel), 0.5);
+	}
+	if (ins->ringDataCount > ins->histReturnPeriod)
+	{
+		int idx = 0;
+		int rel = 0;
+		idx = ins->ringIdx - ins->histReturnPeriod;
+		while (idx < 0)
+		{
+			idx += 60;
+			if (idx < 0 || idx <= ins->ringIdx)
+			{
+				--rel;
+			}
+		}
+		ins->hret = log(ins->mid / ins->midRing[idx]->relative(rel));
+	}
+	ins->bookImbalance = calcBookImbalance(ins);
+	ins->execImbalance = calcExecImbalance(ins);
+	ins->tradeQtyImbalance = calcTradeQtyImbalance(ins);
+	ins->skewWgtExecImbalance = calcSkewWgtExecImbalance(ins);
 }
 void OKExOptimizer::updateRings(OKExInstrument* ins)
 {
@@ -28,7 +61,7 @@ void OKExOptimizer::updateRings(OKExInstrument* ins)
 				ins->RVRing[ins->ringIdx]->add(ins->realizedVolatility);
 				ins->netPosRing[ins->ringIdx]->add(ins->netPosition);
 				ins->bookImbalanceRing[ins->ringIdx]->add(ins->bookImbalance);
-				ins->execImbalanceRing[ins->ringIdx]->add(ins->exeImbalance);
+				ins->execImbalanceRing[ins->ringIdx]->add(ins->execImbalance);
 				ins->bestAskRing[ins->ringIdx]->add(ins->bestAsk->first);
 				ins->bestBidRing[ins->ringIdx]->add(ins->bestBid->first);
 				ins->execBidCntRing[ins->ringIdx]->add(ins->execBidCnt);
@@ -207,7 +240,7 @@ double OKExOptimizer::calcTradeQtyImbalance(OKExInstrument* ins)
 	}
 	return log(wgtSumOfSellTrade / wgtSumOfBuyTrade);
 }
-double OKExOptimizer::calcSkewWgtQtyImbalance(OKExInstrument* ins)
+double OKExOptimizer::calcSkewWgtExecImbalance(OKExInstrument* ins)
 {
 	if (ins->ringDataCount <= ins->SkewWgtEIPeriod)
 	{

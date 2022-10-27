@@ -157,6 +157,7 @@ OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::stri
 		return nullptr;
 		break;
 	default:
+		break;
 	}
 	std::map<int, book*>::iterator bkitend = ins->books->end();
 	if (ins->books->find((int)(newPx * ins->priceUnit)) == bkitend)
@@ -222,6 +223,7 @@ OKExOrder* VirtualOMS::sendCanOrder(long long _tm, std::string instId, std::stri
 		return nullptr;
 		break;
 	default:
+		break;
 	}
 
 	ordTicket* tkt = tktPool->pop();
@@ -250,9 +252,9 @@ OKExOrder* VirtualOMS::sendCanOrder(long long _tm, std::string instId, std::stri
 
 dataOrder* VirtualOMS::createAckTicket(ordTicket* ord)
 {
-
+	return nullptr;
 }
 dataOrder* VirtualOMS::execute(std::string instId, OKExOrder* ord, double sz, double px, std::string msg)
 {
-
+	return nullptr;
 }

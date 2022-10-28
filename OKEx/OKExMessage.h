@@ -39,6 +39,9 @@ struct dataTrades
 
 struct dataOrder
 {
+    OKExEnums::ticketType tktType;
+    std::string msg;
+
     OKExEnums::instType instType;
     std::string instId;
     OKExEnums::quantityType tagCcy;

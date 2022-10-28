@@ -47,6 +47,8 @@ book::~book()
 
 void book::updateBook(OKExEnums::side sd, msgbook* msg)
 {
+    double orgSz = sz;
+    OKExEnums::side orgSide = side;
     px = msg->px;
     switch (sd)
     {
@@ -78,6 +80,18 @@ void book::updateBook(OKExEnums::side sd, msgbook* msg)
         side = OKExEnums::side::_NONE;
     }
     liqOrd = msg->liqOrd;
+
+    if (orgSide == side || side == OKExEnums::side::_NONE)
+    {
+        if (sz - orgSz < 0)
+        {
+
+        }
+    }
+    else
+    {
+
+    }
 }
 
 void book::init(void)
@@ -1145,6 +1159,7 @@ bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
     //calcMid
     return blOptimize;
 }
+
 void OKExInstrument::updateOrders(dataOrder* dtord)
 {
     //Find the order and update it.
@@ -1189,4 +1204,43 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
             liveOrdList->erase(ordit->first);
         }
     }
+}
+
+double OKExInstrument::getPriorQuantity(OKExEnums::side side, double px)
+{
+    std::map<int, book*>::iterator it = books->find((int)(px * priceUnit));
+    if (it == books->end())
+    {
+        return 0;
+    }
+    else
+    {
+        switch (side)
+        {
+        case OKExEnums::side::_BUY:
+            if (it->second->side == OKExEnums::side::_SELL)
+            {
+                return 0;
+            }
+            else
+            {
+                return it->second->sz;
+            }
+            break;
+        case OKExEnums::side::_SELL:
+            if (it->second->side == OKExEnums::side::_BUY)
+            {
+                return 0;
+            }
+            else
+            {
+                return it->second->sz;
+            }
+            break;
+        case OKExEnums::side::_NONE:
+        default:
+            break;
+        }
+    }
+    return 0;
 }

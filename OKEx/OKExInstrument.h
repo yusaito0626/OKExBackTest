@@ -222,6 +222,6 @@ public:
 	std::map<int, book*>::iterator findBest(int pr, OKExEnums::side side);
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);
-
+	double getPriorQuantity(OKExEnums::side side, double px);
 };
 

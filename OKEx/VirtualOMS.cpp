@@ -8,7 +8,7 @@ VirtualOMS::VirtualOMS()
 	numOfSellOrd = 0;
 	numOfBuyOrd = 0;
 	numOfExecSellOrd = 0;
-	numOfExeBuyOrd = 0;
+	numOfExecBuyOrd = 0;
 	sellExecQty = 0;
 	buyExecQty = 0;
 
@@ -250,11 +250,207 @@ OKExOrder* VirtualOMS::sendCanOrder(long long _tm, std::string instId, std::stri
 	return ord;
 }
 
-dataOrder* VirtualOMS::createAckTicket(ordTicket* ord)
+dataOrder* VirtualOMS::createAckTicket(long long _tm, ordTicket* tkt)
 {
-	return nullptr;
+	dataOrder* dtord = execPool->pop();
+	if (!dtord)
+	{
+		for (int i = 0; i < EXE_POOL_SIZE; ++i)
+		{
+			execPool->push(new dataOrder());
+		}
+		dtord = execPool->pop();
+	}
+	OKExInstrument* ins = insList->at(tkt->instId);
+	OKExOrder* objord = ins->ordList->at(tkt->clOrdId);
+	dataOrder* exec;
+	switch (tkt->tktType)
+	{
+	case OKExEnums::ticketType::_SEND_NEW:
+		dtord->tktType = OKExEnums::ticketType::_ACK_NEW;
+		dtord->ordId = getOrdId(tkt->instId);
+		dtord->clOrdId = tkt->clOrdId;
+		dtord->ccy = tkt->ccy;
+		dtord->instId = tkt->instId;
+		dtord->ordType = tkt->ordType;
+		dtord->px = tkt->px;
+		dtord->sz = tkt->sz;
+		dtord->side = tkt->side;
+		dtord->posSide = tkt->posSide;
+		dtord->state = OKExEnums::orderState::_LIVE;
+		dtord->uTime = tm;
+		dtord->tag = tkt->tag;
+		dtord->tdMode = tkt->tdMode;
+		switch (dtord->side)
+		{
+		case OKExEnums::side::_BUY:
+			++numOfBuyOrd;
+			break;
+		case OKExEnums::side::_SELL:
+			++numOfSellOrd;
+			break;
+		default:
+			break;
+		}
+		exec = checkExecution(ins, dtord);
+		if (exec)
+		{
+			dtord = exec;
+		}
+		break;
+	case OKExEnums::ticketType::_SEND_MOD:
+		dtord->tktType = OKExEnums::ticketType::_ACK_MOD;
+		dtord->ordId = getOrdId(tkt->instId);
+		dtord->clOrdId = dtord->clOrdId;
+		dtord->ccy = tkt->ccy;
+		dtord->instId = tkt->instId;
+		dtord->ordType = tkt->ordType;
+		dtord->px = tkt->px;
+		dtord->sz = tkt->sz;
+		dtord->side = tkt->side;
+		dtord->posSide = tkt->posSide;
+		if (dtord->sz - objord->execSz > 0)
+		{
+			dtord->state = OKExEnums::orderState::_PARTIALLY_FILLED;
+		}
+		else if (objord->execSz > 0)
+		{
+			dtord->state = OKExEnums::orderState::_FILLED;
+		}
+		else
+		{
+			dtord->state = OKExEnums::orderState::_LIVE;
+		}
+		dtord->uTime = tm;
+		dtord->tag = tkt->tag;
+		dtord->tdMode = tkt->tdMode;
+		exec = checkExecution(ins, dtord);
+		if (exec)
+		{
+			dtord = exec;
+		}
+		break;
+	case OKExEnums::ticketType::_SEND_CAN:
+		dtord->tktType = OKExEnums::ticketType::_ACK_MOD;
+		dtord->ordId = getOrdId(tkt->instId);
+		dtord->clOrdId = dtord->clOrdId;
+		dtord->ccy = tkt->ccy;
+		dtord->instId = tkt->instId;
+		dtord->ordType = tkt->ordType;
+		dtord->px = tkt->px;
+		dtord->sz = tkt->sz;
+		dtord->side = tkt->side;
+		dtord->posSide = tkt->posSide;
+		if (objord->execSz > 0)
+		{
+			dtord->state = OKExEnums::orderState::_FILLED;
+		}
+		else
+		{
+			dtord->state = OKExEnums::orderState::_LIVE;
+		}
+		dtord->uTime = tm;
+		dtord->tag = tkt->tag;
+		dtord->tdMode = tkt->tdMode;
+		break;
+	default:
+		break;
+	}
+	return dtord;
 }
-dataOrder* VirtualOMS::execute(std::string instId, OKExOrder* ord, double sz, double px, std::string msg)
+
+dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 {
-	return nullptr;
+	std::string msg = "The order took the opposite books";
+	OKExOrder* ord = nullptr;
+	dataOrder* exec = nullptr;
+	switch (ack->side)
+	{
+	case OKExEnums::side::_BUY:
+		if ((int)(ack->px * ins->priceUnit) < ins->bestAsk->first)
+		{
+			return nullptr;
+		}
+		else if ((int)(ack->px * ins->priceUnit) == ins->bestAsk->first)
+		{
+			ord = ins->ordList->at(ack->clOrdId);
+			if (ack->sz - ord->execSz > ins->bestAsk->second->sz)
+			{
+				ins->updateOrders(ack);
+				exec = execute(ins->instId, ord, ins->bestAsk->second->sz, ack->px, msg);
+			}
+			else
+			{
+				ins->updateOrders(ack);
+				exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+			}
+		}
+		else
+		{
+			ord = ins->ordList->at(ack->clOrdId);
+			ins->updateOrders(ack);
+			exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+		}
+		break;
+	case OKExEnums::side::_SELL:
+		if ((int)(ack->px * ins->priceUnit) > ins->bestBid->first)
+		{
+			return nullptr;
+		}
+		else if ((int)(ack->px * ins->priceUnit) == ins->bestBid->first)
+		{
+			ord = ins->ordList->at(ack->clOrdId);
+			if (ack->sz - ord->execSz > ins->bestBid->second->sz)
+			{
+				ins->updateOrders(ack);
+				exec = execute(ins->instId, ord, ins->bestBid->second->sz, ack->px, msg);
+			}
+			else
+			{
+				ins->updateOrders(ack);
+				exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+			}
+		}
+		else
+		{
+			ord = ins->ordList->at(ack->clOrdId);
+			ins->updateOrders(ack);
+			exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+		}
+		break;
+	default:
+		break;
+	}
+	return exec;
+}
+dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)
+{
+	_tm = tm;
+	OKExInstrument* ins = insList->at(instId);
+	if (ord->sz - ord->execSz <= 0)
+	{
+		return nullptr;
+	}
+	if (sz > ord->sz - ord->execSz)
+	{
+		sz = ord->sz - ord->execSz;
+	}
+	if (px <= 0)
+	{
+		return nullptr;
+	}
+	if (sz <= 0)
+	{
+		return nullptr;
+	}
+	dataOrder* exec = execPool->pop();
+	exec->tktType = OKExEnums::ticketType::_EXEC;
+	exec->clOrdId = ord->baseOrdId;
+	exec->ordId = getOrdId(instId);
+	exec->side = ord->side;
+	exec->fillPx = px;
+	exec->fillSz = sz;
+	exec->fillTime = tm;
+	exec->uTime = tm;
+	return exec;
 }

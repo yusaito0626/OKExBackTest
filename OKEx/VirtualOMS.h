@@ -25,7 +25,7 @@ public:
 	int numOfSellOrd;
 	int numOfBuyOrd;
 	int numOfExecSellOrd;
-	int numOfExeBuyOrd;
+	int numOfExecBuyOrd;
 	long long sellExecQty;
 	long long buyExecQty;
 
@@ -36,8 +36,9 @@ public:
 	OKExOrder* sendModOrder(long long _tm, std::string instId, std::string ordId,double newPx,double newSz, std::string& msg);
 	OKExOrder* sendCanOrder(long long _tm, std::string instId, std::string ordId,std::string& msg);
 
-	dataOrder* createAckTicket(ordTicket* ord);
-	dataOrder* execute(std::string instId, OKExOrder* ord, double sz, double px, std::string msg);
+	dataOrder* createAckTicket(long long _tm, ordTicket* tkt);
+	dataOrder* checkExecution(OKExInstrument* ins, dataOrder* ack);
+	dataOrder* execute(long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg);
 
 	static const int ORD_POOL_SIZE = 100000;
 	static const int EXE_POOL_SIZE = 500000;

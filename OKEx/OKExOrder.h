@@ -2,6 +2,7 @@
 #include "includes.h"
 #include "OKExEnums.h"
 #include "OKExMessage.h"
+
 class OKExOrder
 {
 public:
@@ -14,16 +15,18 @@ public:
 	bool live;
 	OKExEnums::orderState status;
 	OKExEnums::side side;
-	int px;
+	double px;
 	double sz;
 	double openSz;
 	double execSz;
 	double execAmt;
 	double avgPx;
-	int lastPx;
+	double lastPx;
 	double lastSz;
-	int newPx;
+	double newPx;
 	double newSz;
+
+	double priorQuantity;
 
 	OKExOrder();
 	OKExOrder(const OKExOrder& obj);

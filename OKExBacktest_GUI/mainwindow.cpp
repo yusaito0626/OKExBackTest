@@ -79,9 +79,9 @@ void MainWindow::WriteLog(void)
 
     if (msg != "")
     {
+        int count = 0;
         while (msg != "")
         {
-            int WroteCount = 0;
             const char* chmsg = msg.c_str();
             QString NewLine = "";
             NewLine.append(strtime);
@@ -89,10 +89,10 @@ void MainWindow::WriteLog(void)
             NewLine.append(chmsg);
             NewLine.append("\n");
             LogText.append(NewLine);
-            ++WroteCount;
+            ++count;
             logfile << NewLine.toStdString();
             logfile.flush();
-            if (WroteCount > 1000)
+            if (count > 1000)
             {
                 break;
             }

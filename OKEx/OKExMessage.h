@@ -105,6 +105,10 @@ struct dataOrder
     double activePx;
     double moveTriggerPx;
     long long pTime;
+
+    dataOrder();
+    ~dataOrder();
+    void init(void);
 };
 
 struct OKExMktMsg
@@ -126,6 +130,10 @@ struct ackTikcet
     int sCode;
     std::string sMsg;
     std::string reqId;
+
+    ackTikcet();
+    ~ackTikcet();
+    void init(void);
 };
 
 struct ordTicket
@@ -149,6 +157,10 @@ struct ordTicket
     //Only Amend Orders
     bool cxlOnFail;
     std::string reqId;
+    
+    ordTicket();
+    ~ordTicket();
+    void init(void);
 };
 
 struct msgOrder
@@ -157,4 +169,8 @@ struct msgOrder
     std::string uniId;
     std::string op;
     int errCode;
+
+    msgOrder();
+    ~msgOrder();
+    void init();
 };

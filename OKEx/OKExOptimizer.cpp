@@ -2,6 +2,7 @@
 
 OKExOptimizer* optimizer = OKExOptimizer::getInstance();
 
+
 void OKExOptimizer::optimize(OKExInstrument* ins)
 {
 

@@ -8,7 +8,7 @@ class OKExOptimizer
 	OKExOptimizer(const OKExOptimizer&) {};
 	OKExOptimizer& operator=(const OKExOptimizer&) {};
 public:
-	~OKExOptimizer();
+	~OKExOptimizer() {};
 
 	void optimize(OKExInstrument* ins);
 

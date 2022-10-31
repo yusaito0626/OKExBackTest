@@ -7,12 +7,10 @@ msgbook::msgbook()
     liqOrd = 0.0;
     numOfOrd = 0;
 }
-
 msgbook::~msgbook()
 {
 
 }
-
 void msgbook::init(void)
 {
     px = 0.0;
@@ -34,13 +32,11 @@ dataBooks::dataBooks()
     ts = 0;
     checkSum = 0;
 }
-
 dataBooks::~dataBooks()
 {
     ts = 0;
     checkSum = 0;
 }
-
 void dataBooks::init(void)
 {
     std::list<msgbook*>::iterator bidit;
@@ -82,11 +78,9 @@ dataTrades::dataTrades()
     side = OKExEnums::side::_NONE;
     ts = 0;
 }
-
 dataTrades::~dataTrades()
 {
 }
-
 void dataTrades::init(void)
 {
     instId = "";
@@ -95,6 +89,141 @@ void dataTrades::init(void)
     sz = 0.0;
     side = OKExEnums::side::_NONE;
     ts = 0;
+}
+
+dataOrder::dataOrder()
+{
+    tktType = OKExEnums::ticketType::_NONE;
+    instType = OKExEnums::instType::_NONE;
+    instId = "";
+    tagCcy = OKExEnums::quantityType::_NONE;
+    ccy = "";
+    ordId = "";
+    clOrdId = "";
+    tag = "";
+    px = 0.0;
+    sz = 0.0;
+    notionalUsd = 0.0;
+    ordType = OKExEnums::ordType::_NONE;
+    side = OKExEnums::side::_NONE;
+    posSide = OKExEnums::posSide::_NONE;
+    tdMode = OKExEnums::tradeMode::_NONE;
+    tradeId = "";
+    fillPx = 0.0;
+    fillSz = 0.0;
+    fillTime = 0;
+    fillFee = 0.0;
+    fillFeeCcy = "";
+    execType = OKExEnums::execType::_NONE;
+    accFillSz = 0.0;
+    fillNotionalUsd = 0.0;
+    avgPx = 0.0;
+    state = OKExEnums::orderState::_NONE;
+    lever = 0.0;
+    tpTriggerPx = 0.0;
+    tpTriggerPxType = OKExEnums::priceType::_NONE;
+    tpOrdPx = 0.0;
+    slTriggerPx = 0.0;
+    slTriggerPxType = OKExEnums::priceType::_NONE;
+    slOrdPx = 0.0;
+    feeCcy = "";
+    fee = 0.0;
+    rebateCcy = "";
+    rebate = 0.0;
+    pnl = 0.0;
+    source = "";
+    category = OKExEnums::category::_NONE;
+    uTime = 0;
+    cTime = 0;
+    reqId = "";
+    amendResult = OKExEnums::amendResult::_NONE;
+    code = 0;
+    msg = "";
+    algoId = "";
+    actualSz = 0.0;
+    actualPx = 0.0;
+    actualSide = "";
+    triggerTime = 0;
+    pxVar = 0.0;
+    pxSpread = 0.0;
+    szLimit = 0.0;
+    pxLimit = 0.0;
+    timeInterval = 0.0;
+    count = 0;
+    callbackRatio = 0.0;
+    callbackSpread = 0.0;
+    activePx = 0.0;
+    moveTriggerPx = 0.0;
+    pTime = 0;
+}
+dataOrder::~dataOrder()
+{
+
+}
+void dataOrder::init(void)
+{
+    tktType = OKExEnums::ticketType::_NONE;
+    instType = OKExEnums::instType::_NONE;
+    instId = "";
+    tagCcy = OKExEnums::quantityType::_NONE;
+    ccy = "";
+    ordId = "";
+    clOrdId = "";
+    tag = "";
+    px = 0.0;
+    sz = 0.0;
+    notionalUsd = 0.0;
+    ordType = OKExEnums::ordType::_NONE;
+    side = OKExEnums::side::_NONE;
+    posSide = OKExEnums::posSide::_NONE;
+    tdMode = OKExEnums::tradeMode::_NONE;
+    tradeId = "";
+    fillPx = 0.0;
+    fillSz = 0.0;
+    fillTime = 0;
+    fillFee = 0.0;
+    fillFeeCcy = "";
+    execType = OKExEnums::execType::_NONE;
+    accFillSz = 0.0;
+    fillNotionalUsd = 0.0;
+    avgPx = 0.0;
+    state = OKExEnums::orderState::_NONE;
+    lever = 0.0;
+    tpTriggerPx = 0.0;
+    tpTriggerPxType = OKExEnums::priceType::_NONE;
+    tpOrdPx = 0.0;
+    slTriggerPx = 0.0;
+    slTriggerPxType = OKExEnums::priceType::_NONE;
+    slOrdPx = 0.0;
+    feeCcy = "";
+    fee = 0.0;
+    rebateCcy = "";
+    rebate = 0.0;
+    pnl = 0.0;
+    source = "";
+    category = OKExEnums::category::_NONE;
+    uTime = 0;
+    cTime = 0;
+    reqId = "";
+    amendResult = OKExEnums::amendResult::_NONE;
+    code = 0;
+    msg = "";
+    algoId = "";
+    actualSz = 0.0;
+    actualPx = 0.0;
+    actualSide = "";
+    triggerTime = 0;
+    pxVar = 0.0;
+    pxSpread = 0.0;
+    szLimit = 0.0;
+    pxLimit = 0.0;
+    timeInterval = 0.0;
+    count = 0;
+    callbackRatio = 0.0;
+    callbackSpread = 0.0;
+    activePx = 0.0;
+    moveTriggerPx = 0.0;
+    pTime = 0;
 }
 
 OKExMktMsg::OKExMktMsg()
@@ -131,4 +260,91 @@ void OKExMktMsg::init(void)
     {
         (*tradeit)->init();
     }
+}
+
+ackTikcet::ackTikcet()
+{
+    ordId = "";
+    clOrdId = "";
+    tag = "";
+    sCode = 0;
+    sMsg = "";
+    reqId = "";
+}
+ackTikcet::~ackTikcet()
+{
+
+}
+void ackTikcet::init(void)
+{
+    ordId = "";
+    clOrdId = "";
+    tag = "";
+    sCode = 0;
+    sMsg = "";
+    reqId = "";
+}
+
+ordTicket::ordTicket()
+{
+    idate = 0;
+    ts = 0;
+    tktType = OKExEnums::ticketType::_NONE;
+    instId = "";
+    tdMode = OKExEnums::tradeMode::_NONE;
+    ccy = "";
+    ordId = "";
+    clOrdId = "";
+    tag = "";
+    side = OKExEnums::side::_NONE;
+    posSide = OKExEnums::posSide::_NONE;
+    ordType = OKExEnums::ordType::_NONE;
+    sz = 0.0;
+    px = 0.0;
+    reduceOnly = false;
+    cxlOnFail = false;
+    reqId = "";
+}
+ordTicket::~ordTicket()
+{
+
+}
+void ordTicket::init(void)
+{
+    idate = 0;
+    ts = 0;
+    tktType = OKExEnums::ticketType::_NONE;
+    instId = "";
+    tdMode = OKExEnums::tradeMode::_NONE;
+    ccy = "";
+    ordId = "";
+    clOrdId = "";
+    tag = "";
+    side = OKExEnums::side::_NONE;
+    posSide = OKExEnums::posSide::_NONE;
+    ordType = OKExEnums::ordType::_NONE;
+    sz = 0.0;
+    px = 0.0;
+    reduceOnly = false;
+    cxlOnFail = false;
+    reqId = "";
+}
+
+msgOrder::msgOrder()
+{
+    dataType = "";
+    uniId = "";
+    op = "";
+    errCode = 0;
+}
+msgOrder::~msgOrder()
+{
+
+}
+void msgOrder::init()
+{
+    dataType = "";
+    uniId = "";
+    op = "";
+    errCode = 0;
 }

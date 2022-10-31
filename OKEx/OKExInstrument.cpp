@@ -1433,3 +1433,28 @@ double OKExInstrument::getPriorQuantity(OKExEnums::side side, double px)
     }
     return 0;
 }
+
+void OKExInstrument::calcMid(void)
+{
+    std::map<int, book*>::iterator itend = books->end();
+    std::map<int, book*>::iterator itbegin = books->begin();
+    if (bestAsk != itend && bestBid != itend)
+    {
+        mid = (bestAsk->second->px + bestBid->second->px) / 2;
+    }
+    else if (bestBid == itbegin)
+    {
+        if (bestBid->second->sz > 0 && bestBid->first > 0)
+        {
+            mid = (bestAsk->second->px + bestBid->second->px) / 2;
+        }
+        else if (bestAsk != itend)
+        {
+            mid = bestAsk->second->px;
+        }
+    }
+    else if (bestAsk != itend)
+    {
+        mid = bestAsk->second->px;
+    }
+}

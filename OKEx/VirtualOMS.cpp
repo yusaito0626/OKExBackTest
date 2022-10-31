@@ -257,6 +257,28 @@ OKExOrder* VirtualOMS::sendCanOrder(long long _tm, std::string instId, std::stri
 	return ord;
 }
 
+
+void VirtualOMS::checkWaitingOrdQueue(long long _tm)
+{
+	OKExInstrument* ins = nullptr;
+	ordTicket* tkt = nullptr;
+	dataOrder* ack = nullptr;
+	while (waitingOrderQueue->Count() > 0)
+	{
+		tkt = waitingOrderQueue->Peak();
+		if (tkt->idate == GlobalVariables::OKEx::today.iday)
+		{
+			if (_tm > tkt->ts + GlobalVariables::OKEx::latency)
+			{
+				tkt = waitingOrderQueue->Dequeue();
+				ins = insList->at(tkt->instId);
+				ack = createAckTicket(_tm, tkt);
+				ackQueue->Enqueue(ack);
+			}
+		}
+	}
+}
+
 dataOrder* VirtualOMS::createAckTicket(long long _tm, ordTicket* tkt)
 {
 	dataOrder* dtord = execPool->pop();

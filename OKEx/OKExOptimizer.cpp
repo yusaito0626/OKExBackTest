@@ -2,6 +2,11 @@
 
 OKExOptimizer* optimizer = OKExOptimizer::getInstance();
 
+void OKExOptimizer::optimize(OKExInstrument* ins)
+{
+
+}
+
 void OKExOptimizer::calcFactors(OKExInstrument* ins)
 {
 	if (ins->ringDataCount > ins->RVPeriod)
@@ -282,3 +287,4 @@ double OKExOptimizer::calcSkewWgtExecImbalance(OKExInstrument* ins)
 	}
 	return log(wgtSumOfAskExec / wgtSumOfBidExec);
 }
+

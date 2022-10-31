@@ -5,6 +5,7 @@
 #include "OKExParser.h"
 #include "OKExMessage.h"
 #include "OKExOptimizer.h"
+#include "VirtualOMS.h"
 #include "../utils/json.h"
 #include "../utils/Logging.h"
 
@@ -14,7 +15,7 @@ class OKExFeedFileReader
 	OKExFeedFileReader(const OKExFeedFileReader&) {};
 	OKExFeedFileReader& operator=(const OKExFeedFileReader&) {};
 public:
-	long long time;
+	long long ts;
 	std::map<std::string, OKExInstrument*>* insList;
 	int feedCount;
 	int lastFeedCount;
@@ -24,6 +25,7 @@ public:
 	std::map<std::string, OKExInstrument*>* initializeInsList(std::string masterfile);
 	void readParamFile(std::string paramfile);
 	void readFeedFile(std::string feedFile);
+	bool reflectOneMsg(OKExMktMsg* msg);
 
 	OKExInstrument* findInsByAlias(std::string alias, std::string uly);
 

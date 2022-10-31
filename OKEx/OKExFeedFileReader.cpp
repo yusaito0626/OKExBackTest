@@ -4,7 +4,7 @@ OKExFeedFileReader* feedReader = OKExFeedFileReader::getInstance();
 
 OKExFeedFileReader::OKExFeedFileReader()
 {
-	time = 0;
+	ts = 0;
 	insList = nullptr;
 	feedCount = 0;
 	lastFeedCount = 0;
@@ -16,7 +16,7 @@ OKExFeedFileReader::~OKExFeedFileReader()
 
 void OKExFeedFileReader::initialize(void)
 {
-	time = 0;
+	ts = 0;
 	insList = nullptr;
 	feedCount = 0;
 	lastFeedCount = 0;
@@ -138,21 +138,55 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 		if (msg->blHasData)
 		{
 			ins = insList->find(msg->args->at("instId"));
-			if (ins != insend)
+			blOptimize = reflectOneMsg(msg);
+			if (blOptimize)
 			{
-				blOptimize = ins->second->reflectMsg(msg);
-				if (blOptimize)
-				{
-					//Optimize
-					optimizer->calcFactors(ins->second);
-					blOptimize = false;
-				}
-				++feedCount;
+				//Optimize
+				optimizer->updateRings(ins->second);
+				optimizer->calcFactors(ins->second);
+				optimizer->optimize(ins->second);
+				blOptimize = false;
 			}
+			++feedCount;
 		}
 		msg->init();
 	}
 	
+}
+
+bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
+{
+	std::map<std::string, OKExInstrument*>::iterator ins;
+	std::map<std::string, OKExInstrument*>::iterator insend = insList->end();
+	ins = insList->find(msg->args->at("instId"));
+	bool blOptimize = false;
+	if (ins != insend)
+	{
+		if (msg->args->at("channel") == "books")
+		{
+			if (msg->args->at("action") == "snapshot")
+			{
+				ins->second->initializeBooks(msg, 1000);
+				ins->second->calcMid();
+			}
+			else if (msg->args->at("action") == "update")
+			{
+				blOptimize = ins->second->updateBooks(msg);
+				ins->second->calcMid();
+				ts = ins->second->ts;
+				voms->checkWaitingOrdQueue(ts);
+			}
+		}
+		else if (msg->args->at("channel") == "trades")
+		{
+			ins->second->updateTrade(msg);
+			ins->second->calcMid();
+			ts = ins->second->ts;
+			voms->checkWaitingOrdQueue(ts);
+			blOptimize = true;
+		}
+	}
+	return blOptimize;
 }
 
 OKExInstrument* OKExFeedFileReader::findInsByAlias(std::string alias, std::string uly)

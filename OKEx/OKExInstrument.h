@@ -229,6 +229,7 @@ public:
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);
 	double getPriorQuantity(OKExEnums::side side, double px);
+	void calcMid(void);
 
 	boost::function<dataOrder* (long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)> execute;
 };

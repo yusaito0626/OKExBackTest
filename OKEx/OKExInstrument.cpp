@@ -52,8 +52,6 @@ book::~book()
 
 void book::updateBook(OKExEnums::side sd, msgbook* msg)
 {
-    double orgSz = sz;
-    OKExEnums::side orgSide = side;
     px = msg->px;
     switch (sd)
     {
@@ -85,62 +83,6 @@ void book::updateBook(OKExEnums::side sd, msgbook* msg)
         side = OKExEnums::side::_NONE;
     }
     liqOrd = msg->liqOrd;
-
-    if (orgSide == side)
-    {
-        if (sz - orgSz < 0)
-        {
-            double deductingSz = orgSz - sz;
-            if (recentExec >= deductingSz)
-            {
-                recentExec -= deductingSz;
-                deductingSz = 0;
-            }
-            else
-            {
-                if (recentExec > 0)
-                {
-                    deductingSz -= recentExec;
-                    recentExec = 0;
-                }
-                std::map<std::string, OKExOrder*>::iterator it;
-                std::map<std::string, OKExOrder*>::iterator itend = liveOrders->end();
-                for (it = liveOrders->begin(); it != itend; ++it)
-                {
-                    if (side == it->second->side)
-                    {
-                        double qtyBehind = orgSz - it->second->priorQuantity;
-                        if (qtyBehind < deductingSz)
-                        {
-                            it->second->priorQuantity -= deductingSz - qtyBehind;
-                            if (it->second->priorQuantity < 0)
-                            {
-                                it->second->priorQuantity = 0;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else if (sz - orgSz > 0)
-        {
-            double execSz = sz - orgSz;
-            std::map<std::string, OKExOrder*>::iterator it;
-            std::map<std::string, OKExOrder*>::iterator itend = liveOrders->end();
-            for (it = liveOrders->begin(); it != itend; ++it)
-            {
-                if (side != it->second->side)
-                {
-                    it->second->priorQuantity = 0;
-                    
-                }
-            }
-        }
-    }
-    else
-    {
-
-    }
 }
 
 void book::init(void)
@@ -204,6 +146,32 @@ OKExOrder* book::getTopOrder(void)
     }
     return ord;
 }
+
+OKExOrder* book::getTopOrder(OKExEnums::side sd)
+{
+    std::map<std::string, OKExOrder*>::iterator it;
+    std::map<std::string, OKExOrder*>::iterator itend = liveOrders->end();
+    long long ts = 0;
+    OKExOrder* ord = nullptr;
+    for (it = liveOrders->begin(); it != itend; ++it)
+    {
+        if (it->second->side == sd)
+        {
+            if (ts == 0)
+            {
+                ts = it->second->orgTime;
+                ord = it->second;
+            }
+            else if (ts > it->second->orgTime)
+            {
+                ts = it->second->orgTime;
+                ord = it->second;
+            }
+        }
+    }
+    return ord;
+}
+
 OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price has been changed
 {
     std::map<std::string, OKExOrder*>::iterator ordit = liveOrders->find(tkt->clOrdId);
@@ -567,6 +535,8 @@ OKExInstrument::OKExInstrument()
     books = new std::map<int, book*>();
     bestAsk = books->end();
     bestBid = books->end();
+    prevBestAsk = books->end();
+    prevBestBid = books->end();
     lowestBook = 0;
     highestBook = 0;
     netPosition = 0.0;
@@ -1041,8 +1011,12 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
     std::map<int, book*>::iterator thisbookend = books->end();
     std::map<int, book*>::iterator bk;
     OKExEnums::side orgSide;
+    double orgSz;
     std::map<int, book*>::iterator temp_bid;
     std::map<int, book*>::iterator temp_ask;
+
+    prevBestAsk = bestAsk;
+    prevBestBid = bestBid;
 
     for (it = msg->books->begin(); it != itend; ++it)
     {
@@ -1068,7 +1042,9 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                 if (bk != thisbookend)
                 {
                     orgSide = bk->second->side;
+                    orgSz = bk->second->sz;
                     bk->second->updateBook(OKExEnums::side::_BUY, *bookit);
+                    checkExecution(bk, orgSide, orgSz, bk->first);
                     if (bk->second->side == OKExEnums::side::_BUY)
                     {
                         if (bk->second->sz > 0 && bk->first > bestBid->first)
@@ -1129,7 +1105,10 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                 if (bk != thisbookend)
                 {
                     orgSide = bk->second->side;
+                    orgSz = bk->second->sz;
                     bk->second->updateBook(OKExEnums::side::_SELL, *bookit);
+                    checkExecution(bk, orgSide, orgSz, bk->first);
+
                     if (bk->second->side == OKExEnums::side::_SELL)
                     {
                         if (bk->second->sz > 0 && bk->first < bestAsk->first)
@@ -1184,6 +1163,167 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
     }
     
     return true;
+}
+
+
+void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OKExEnums::side orgSide, double orgSz, int pr)
+{
+    //Execute my orders
+    //if sz increased, all of sz of buy orders higher than sell pr, sell orders less than buy pr
+    //if sz increased, same price, the other side, execute sz - orgSz
+    //if sz decreased, same price, same side, deduct orgSz - sz if there is no book behind the order at the same price.
+    std::map<int, book*>::iterator tempbk;
+    std::map<std::string, OKExOrder*>::iterator ordit;
+    std::map<std::string, OKExOrder*>::iterator orditend;
+    std::string msg;
+    OKExOrder* ord = nullptr;
+    OKExEnums::side ordSide = OKExEnums::side::_NONE;
+    switch (currentbk->second->side)
+    {
+    case OKExEnums::side::_BUY:
+        ordSide = OKExEnums::side::_SELL;
+        //Check sell Orders from org best buy to the current bk
+        if (currentbk->first > prevBestBid->first)
+        {
+            for (tempbk = prevBestBid; tempbk != currentbk; ++tempbk)
+            {
+                orditend = tempbk->second->liveOrders->end();
+                for (ordit = tempbk->second->liveOrders->begin(); ordit != orditend; ++ordit)
+                {
+                    if (ordit->second->side != currentbk->second->side)
+                    {
+                        execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
+                    }
+                }
+            }
+        }
+        break;
+    case OKExEnums::side::_SELL:
+        ordSide = OKExEnums::side::_BUY;
+        //Check buy orders from org best sell to the current bk
+        if (currentbk->first < prevBestAsk->first)
+        {
+            for (tempbk = prevBestAsk; tempbk != currentbk; --tempbk)
+            {
+                orditend = tempbk->second->liveOrders->end();
+                for (ordit = tempbk->second->liveOrders->begin(); ordit != orditend; ++ordit)
+                {
+                    if (ordit->second->side != currentbk->second->side)
+                    {
+                        execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
+                    }
+                }
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (orgSide == currentbk->second->side)
+    {
+        if (currentbk->second->sz - orgSz < 0)
+        {
+            double deductingSz = orgSz - currentbk->second->sz;
+            if (currentbk->second->recentExec >= deductingSz)
+            {
+                currentbk->second->recentExec -= deductingSz;
+                deductingSz = 0;
+            }
+            else
+            {
+                if (currentbk->second->recentExec > 0)
+                {
+                    deductingSz -= currentbk->second->recentExec;
+                    currentbk->second->recentExec = 0;
+                }
+                std::map<std::string, OKExOrder*>::iterator it;
+                std::map<std::string, OKExOrder*>::iterator itend = currentbk->second->liveOrders->end();
+                for (it = currentbk->second->liveOrders->begin(); it != itend; ++it)
+                {
+                    if (currentbk->second->side == it->second->side)
+                    {
+                        double qtyBehind = orgSz - it->second->priorQuantity;
+                        if (qtyBehind < deductingSz)
+                        {
+                            it->second->priorQuantity -= deductingSz - qtyBehind;
+                            if (it->second->priorQuantity < 0)
+                            {
+                                it->second->priorQuantity = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else if (currentbk->second->sz - orgSz > 0)
+        {
+            orditend = currentbk->second->liveOrders->end();
+            for (ordit = currentbk->second->liveOrders->begin(); ordit != orditend; ++ordit)
+            {
+                if (currentbk->second->side != ordit->second->side)
+                {
+                    ordit->second->priorQuantity = 0;
+                }
+            }
+            double execSzAll = currentbk->second->sz - orgSz;
+            while (execSzAll > 0)
+            {
+                ord = currentbk->second->getTopOrder(ordSide);
+                if (ord)
+                {
+                    double execSz = execSzAll;
+                    if (execSz > ord->openSz)
+                    {
+                        execSz = ord->openSz;
+                    }
+                    dataOrder* exec;
+                    ord->priorQuantity = 0;
+                    exec = execute(ts, instId, ord, execSz, currentbk->second->px, msg);
+                    updateOrders(exec);
+                    execSzAll -= execSz;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        orditend = currentbk->second->liveOrders->end();
+        for (ordit = currentbk->second->liveOrders->begin(); ordit != orditend; ++ordit)
+        {
+            if (currentbk->second->side != ordit->second->side)
+            {
+                ordit->second->priorQuantity = 0;
+            }
+        }
+        double execSzAll = currentbk->second->sz - orgSz;
+        while (execSzAll > 0)
+        {
+            ord = currentbk->second->getTopOrder(ordSide);
+            if (ord)
+            {
+                double execSz = execSzAll;
+                if (execSz > ord->openSz)
+                {
+                    execSz = ord->openSz;
+                }
+                dataOrder* exec;
+                ord->priorQuantity = 0;
+                exec = execute(ts, instId, ord, execSz, currentbk->second->px, msg);
+                updateOrders(exec);
+                execSzAll -= execSz;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
 }
 
 bool OKExInstrument::reflectMsg(OKExMktMsg* msg)

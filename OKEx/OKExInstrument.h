@@ -32,6 +32,7 @@ public:
 	void addOrder(OKExOrder* ord);
 	OKExOrder* removeOrder(std::string baseOrdId);
 	OKExOrder* getTopOrder(void);
+	OKExOrder* getTopOrder(OKExEnums::side sd);
 	OKExOrder* updateOrder(dataOrder* tkt);
 	bool executeOrder(dataOrder* trd);
 
@@ -124,6 +125,8 @@ public:
 	std::map<int, book*>* books;
 	std::map<int, book*>::iterator bestAsk;
 	std::map<int, book*>::iterator bestBid;
+	std::map<int, book*>::iterator prevBestAsk;
+	std::map<int, book*>::iterator prevBestBid;
 	int lowestBook;
 	int highestBook;
 	position longPosition;
@@ -220,10 +223,13 @@ public:
 	void updateTrade(OKExMktMsg* msg);
 	void initializeBooks(OKExMktMsg* msg, int depth);
 	bool updateBooks(OKExMktMsg* msg);
+	void checkExecution(std::map<int,book*>::iterator currentbk,OKExEnums::side orgSide, double orgSz, int pr);
 	void reshapeBooks(void);
 	std::map<int, book*>::iterator findBest(int pr, OKExEnums::side side);
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);
 	double getPriorQuantity(OKExEnums::side side, double px);
+
+	boost::function<dataOrder* (long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)> execute;
 };
 

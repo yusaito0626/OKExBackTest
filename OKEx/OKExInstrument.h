@@ -22,6 +22,8 @@ public:
 	int numOfMyOrd;
 	long long ts;
 
+	double recentExec;
+
 	book();
 	book(const book& obj);
 	~book();

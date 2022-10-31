@@ -13,6 +13,8 @@ book::book()
     szMyOrd = 0.0;
     numOfMyOrd = 0;
     ts = 0;
+    recentExec = 0.0;
+    liveOrders = new std::map<std::string, OKExOrder*>();
 }
 
 book::book(const book& obj)
@@ -23,11 +25,13 @@ book::book(const book& obj)
     szSell = obj.szSell;
     szBuy = obj.szBuy;
     liqOrd = obj.liqOrd;
-    numOfOrdBuy = 0;
-    numOfOrdSell = 0;
-    szMyOrd = 0;
-    numOfMyOrd = 0;
+    numOfOrdBuy = obj.numOfOrdBuy;
+    numOfOrdSell = obj.numOfOrdSell;
+    szMyOrd = obj.szMyOrd;
+    numOfMyOrd = obj.numOfMyOrd;
     ts = obj.ts;
+    recentExec = obj.recentExec;
+    liveOrders = obj.liveOrders;
 }
 
 book::~book()
@@ -43,6 +47,7 @@ book::~book()
     szMyOrd = 0.0;
     numOfMyOrd = 0;
     ts = 0;
+    recentExec = 0.0;
 }
 
 void book::updateBook(OKExEnums::side sd, msgbook* msg)
@@ -81,11 +86,55 @@ void book::updateBook(OKExEnums::side sd, msgbook* msg)
     }
     liqOrd = msg->liqOrd;
 
-    if (orgSide == side || side == OKExEnums::side::_NONE)
+    if (orgSide == side)
     {
         if (sz - orgSz < 0)
         {
-
+            double deductingSz = orgSz - sz;
+            if (recentExec >= deductingSz)
+            {
+                recentExec -= deductingSz;
+                deductingSz = 0;
+            }
+            else
+            {
+                if (recentExec > 0)
+                {
+                    deductingSz -= recentExec;
+                    recentExec = 0;
+                }
+                std::map<std::string, OKExOrder*>::iterator it;
+                std::map<std::string, OKExOrder*>::iterator itend = liveOrders->end();
+                for (it = liveOrders->begin(); it != itend; ++it)
+                {
+                    if (side == it->second->side)
+                    {
+                        double qtyBehind = orgSz - it->second->priorQuantity;
+                        if (qtyBehind < deductingSz)
+                        {
+                            it->second->priorQuantity -= deductingSz - qtyBehind;
+                            if (it->second->priorQuantity < 0)
+                            {
+                                it->second->priorQuantity = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else if (sz - orgSz > 0)
+        {
+            double execSz = sz - orgSz;
+            std::map<std::string, OKExOrder*>::iterator it;
+            std::map<std::string, OKExOrder*>::iterator itend = liveOrders->end();
+            for (it = liveOrders->begin(); it != itend; ++it)
+            {
+                if (side != it->second->side)
+                {
+                    it->second->priorQuantity = 0;
+                    
+                }
+            }
         }
     }
     else

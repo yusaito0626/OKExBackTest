@@ -377,19 +377,19 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 			if (ack->sz - ord->execSz > ins->bestAsk->second->sz)
 			{
 				ins->updateOrders(ack);
-				exec = execute(ins->instId, ord, ins->bestAsk->second->sz, ack->px, msg);
+				exec = execute(tm,ins->instId, ord, ins->bestAsk->second->sz, ack->px, msg);
 			}
 			else
 			{
 				ins->updateOrders(ack);
-				exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+				exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
 			}
 		}
 		else
 		{
 			ord = ins->ordList->at(ack->clOrdId);
 			ins->updateOrders(ack);
-			exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+			exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
 		}
 		break;
 	case OKExEnums::side::_SELL:
@@ -403,19 +403,19 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 			if (ack->sz - ord->execSz > ins->bestBid->second->sz)
 			{
 				ins->updateOrders(ack);
-				exec = execute(ins->instId, ord, ins->bestBid->second->sz, ack->px, msg);
+				exec = execute(tm, ins->instId, ord, ins->bestBid->second->sz, ack->px, msg);
 			}
 			else
 			{
 				ins->updateOrders(ack);
-				exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+				exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
 			}
 		}
 		else
 		{
 			ord = ins->ordList->at(ack->clOrdId);
 			ins->updateOrders(ack);
-			exec = execute(ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+			exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
 		}
 		break;
 	default:

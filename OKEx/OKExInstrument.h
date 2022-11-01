@@ -132,9 +132,16 @@ public:
 	position longPosition;
 	position shortPosition;
 	double netPosition;
+	double baseMid;
+	double prevNetPos;
+
+	double tradePL;
+	double posPL;
+	double totalPL;
 
 	std::map<std::string, OKExOrder*>* ordList;
 	std::map<std::string, OKExOrder*>* liveOrdList;
+	std::atomic<bool> lckLiveOrdList;
 
 	int tradedCntBuy;
 	int tradedCntSell;

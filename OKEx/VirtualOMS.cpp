@@ -129,7 +129,21 @@ OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums
 	waitingOrderQueue->Enqueue(tkt);
 	ordQueue->Enqueue(ord);
 	ins->ordList->emplace(ord->baseOrdId, ord);
-	ins->liveOrdList->emplace(ord->baseOrdId, ord);
+	bool desired = true;
+	bool expected = false;
+	while (true)
+	{
+		if (ins->lckLiveOrdList.compare_exchange_weak(expected, desired))
+		{
+			ins->liveOrdList->emplace(ord->baseOrdId, ord);
+			ins->lckLiveOrdList = false;
+			break;
+		}
+		else
+		{
+			expected = false;
+		}
+	}
 	return ord;
 }
 OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::string ordId, double newPx, double newSz, std::string& msg)

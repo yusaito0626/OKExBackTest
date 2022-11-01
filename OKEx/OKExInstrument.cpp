@@ -540,9 +540,16 @@ OKExInstrument::OKExInstrument()
     lowestBook = 0;
     highestBook = 0;
     netPosition = 0.0;
+    baseMid = 0.0;
+    prevNetPos = 0.0;
+
+    tradePL = 0.0;
+    posPL = 0.0;
+    totalPL = 0.0;
 
     ordList = new std::map<std::string, OKExOrder*>();
     liveOrdList = new std::map<std::string, OKExOrder*>();
+    lckLiveOrdList = false;
 
     tradedCntBuy = 0;
     tradedCntSell = 0;
@@ -1355,11 +1362,11 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
     //Call book->updateOrder if it's an ack of the order
     //Call book->executeOrder if it's an execution.
     //Update Variables on Instrument class and Position Class.
-    std::map<std::string, OKExOrder*>::iterator ordit = liveOrdList->find(dtord->clOrdId);
+    std::map<std::string, OKExOrder*>::iterator ordit = ordList->find(dtord->clOrdId);
     book* bk;
     book* newbk;
     OKExOrder* neword;
-    if (ordit != liveOrdList->end())
+    if (ordit != ordList->end() && ordit->second->live)
     {
         bk = books->at(ordit->second->px);
         if (dtord->fillSz > 0)//Execution
@@ -1390,7 +1397,21 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
         }
         if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
         {
-            liveOrdList->erase(ordit->first);
+            bool desired = true;
+            bool expected = false;
+            while (true)
+            {
+                if (lckLiveOrdList.compare_exchange_weak(expected, desired))
+                {
+                    liveOrdList->erase(ordit->first);
+                    lckLiveOrdList = false;
+                    break;
+                }
+                else
+                {
+                    expected = false;
+                }
+            }
         }
     }
 }

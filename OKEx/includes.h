@@ -10,3 +10,4 @@
 #include <boost/functional.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include <boost/atomic.hpp>

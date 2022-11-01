@@ -40,6 +40,23 @@ MainWindow::MainWindow(QWidget *parent)
     Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr6, ui->lblBidQty6));
     Bids.push_back(std::pair<QLabel*, QLabel*>(ui->lblBidPr7, ui->lblBidQty7));
 
+    int i = 0;
+    int j = 0;
+    QTableWidgetItem* pItem;
+    for (i = 0; i < 100; ++i)
+    {
+        ui->tableOrders->insertRow(0);
+        for (j = 0; j < 6; ++j)
+        {
+            pItem = ui->tableOrders->item(0, j);
+            if (!pItem)
+            {
+                pItem = new QTableWidgetItem();
+                ui->tableOrders->setItem(0, j, pItem);
+            }
+        }
+    }
+
     UpdateCount = 0;
     feedCount = 0;
     lastfeedCount = 0;
@@ -187,10 +204,40 @@ void MainWindow::SetInstrunemt(std::string instId)
 void MainWindow::UpdateInsInfo(OKExInstrument* ins)
 {
     //Price
-    ui->lblOpen->setText(QString::number(ins->open));
-    ui->lblLow->setText(QString::number(ins->low));
-    ui->lblHigh->setText(QString::number(ins->high));
-    ui->lblLast->setText(QString::number(ins->last));
+    ui->lblOpen->setText(QString("%L1").arg(ins->open, 0, 'f', 1));
+    ui->lblLow->setText(QString("%L1").arg(ins->low, 0, 'f', 1));
+    ui->lblHigh->setText(QString("%L1").arg(ins->high, 0, 'f', 1));
+    ui->lblLast->setText(QString("%L1").arg(ins->last, 0, 'f', 1));
+
+
+    //Trade Summary
+    ui->lblSellQty->setText(QString("%L1").arg(ins->tradedQtySell, 0, 'f', 5));
+    ui->lblBuyQty->setText(QString("%L1").arg(ins->tradedQtyBuy, 0, 'f', 5));
+    if (ins->tradedQtySell > 0)
+    {
+        ui->lblSellPr->setText(QString("%L1").arg(ins->tradedAmtSell / ins->tradedQtySell, 0, 'f', 2));
+    }
+    else
+    {
+        ui->lblSellPr->setText(QString("%L1").arg(0, 0, 'f', 2));
+    }
+    if (ins->tradedQtyBuy > 0)
+    {
+        ui->lblBuyPr->setText(QString("%L1").arg(ins->tradedAmtBuy / ins->tradedQtyBuy, 0, 'f', 2));
+    }
+    else
+    {
+        ui->lblBuyPr->setText(QString("%L1").arg(0, 0, 'f', 2));
+    }
+    
+    
+    //PL
+    ins->tradePL = (ins->tradedAmtSell - ins->tradedQtySell * ins->mid) + (ins->tradedQtyBuy * ins->mid - ins->tradedAmtBuy);
+    ins->posPL = ins->prevNetPos * (ins->mid - ins->baseMid);
+    ins->totalPL = ins->tradePL + ins->posPL;
+    ui->lblTradePL->setText(QString("%L1").arg(ins->tradePL, 0, 'f', 2));
+    ui->lblPosPL->setText(QString("%L1").arg(ins->posPL, 0, 'f', 2));
+    ui->lblTotalPL->setText(QString("%L1").arg(ins->totalPL, 0, 'f', 2));
 
     //Books
     std::vector<std::pair<QLabel*, QLabel*>>::iterator it = Asks.begin();
@@ -288,6 +335,39 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
             }
         }
         ++it;
+    }
+
+    //Live Orders
+    bool desired = true;
+    bool expected = false;
+    while (true)
+    {
+        if (ins->lckLiveOrdList.compare_exchange_weak(expected, desired))
+        {
+            int i = 0;
+            std::map<std::string, OKExOrder*>::iterator it;
+            std::map<std::string, OKExOrder*>::iterator itend = ins->liveOrdList->end();
+            for (it = ins->liveOrdList->begin(); it != itend; ++it)
+            {
+                if (i > 99)
+                {
+                    break;
+                }
+                ui->tableOrders->item(i, 0)->setText(QString::fromStdString(it->second->baseOrdId));
+                ui->tableOrders->item(i, 1)->setText(QString::number((int)it->second->status));
+                ui->tableOrders->item(i, 2)->setText(QString::number((int)it->second->side));
+                ui->tableOrders->item(i, 3)->setText(QString("%L1").arg(it->second->px, 0, 'f', 1));
+                ui->tableOrders->item(i, 4)->setText(QString("%L1").arg(it->second->sz, 0, 'f', 5));
+                ui->tableOrders->item(i, 5)->setText(QString("%L1").arg(it->second->execSz, 0, 'f', 5));
+                ++i;
+            }
+            ins->lckLiveOrdList = false;
+            break;
+        }
+        else
+        {
+            expected = false;
+        }
     }
 }
 

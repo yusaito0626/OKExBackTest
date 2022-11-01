@@ -27,7 +27,7 @@ struct dataTrades
 {
     std::string instId;
     std::string tradeId;
-    int px;
+    double px;
     double sz;
     OKExEnums::side side;
     long long ts;

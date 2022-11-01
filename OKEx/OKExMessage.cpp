@@ -73,7 +73,7 @@ dataTrades::dataTrades()
 {
     instId = "";
     tradeId = "";
-    px = 0;
+    px = 0.0;
     sz = 0.0;
     side = OKExEnums::side::_NONE;
     ts = 0;
@@ -85,7 +85,7 @@ void dataTrades::init(void)
 {
     instId = "";
     tradeId = "";
-    px = 0;
+    px = 0.0;
     sz = 0.0;
     side = OKExEnums::side::_NONE;
     ts = 0;

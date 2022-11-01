@@ -14,12 +14,15 @@ OKExFeedFileReader::~OKExFeedFileReader()
 
 }
 
-void OKExFeedFileReader::initialize(void)
+void OKExFeedFileReader::initialize(std::string outputFilePath)
 {
 	ts = 0;
 	insList = nullptr;
 	feedCount = 0;
 	lastFeedCount = 0;
+	outputFile = std::ofstream(outputFilePath + "\\OKExSimSummary_" + GlobalVariables::OKEx::suffix + ".csv");
+	outputFile << "date,instId,open,high,low,last,sell trade qty,sell avg pr,buy trade qty,buy avg pr,pos PL,trade PL,total PL" << std::endl;
+	outputFile.flush();
 }
 
 std::map<std::string, OKExInstrument*>* OKExFeedFileReader::initializeInsList(std::string masterfile)
@@ -151,7 +154,8 @@ void OKExFeedFileReader::readFeedFile(std::string feedFile)
 		}
 		msg->init();
 	}
-	
+	binaryFile.pop();
+	binaryFile.pop();
 }
 
 bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
@@ -240,4 +244,21 @@ OKExInstrument* OKExFeedFileReader::findInsByAlias(std::string alias, std::strin
 	{
 		return nullptr;
 	}
+}
+
+void OKExFeedFileReader::endOfDayReset(void)
+{
+	std::map<std::string, OKExInstrument*>::iterator it;
+	std::map<std::string, OKExInstrument*>::iterator itend = insList->end();
+	
+	for (it = insList->begin(); it != itend; ++it)
+	{
+		outputFile << GlobalVariables::OKEx::today.strday << it->second->outputDailyResult() << std::endl;
+		outputFile.flush();
+		it->second->endOfDayReset();
+	}
+
+	ts = 0;
+	feedCount = 0;
+	lastFeedCount = 0;
 }

@@ -6,6 +6,7 @@ namespace GlobalVariables
 {
 	namespace OKEx
 	{
+		extern std::string suffix;
 		extern Date today;
 		extern int latency;//msec
 

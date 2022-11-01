@@ -32,5 +32,6 @@ public:
 	OKExOrder(const OKExOrder& obj);
 	~OKExOrder();
 	void init(void);
+	std::string toString(void);
 };
 

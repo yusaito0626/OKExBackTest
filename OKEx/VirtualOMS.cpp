@@ -44,7 +44,7 @@ std::string VirtualOMS::getOrdId(std::string instId)
 	return instId + std::to_string(GlobalVariables::OKEx::today.iday) + (boost::format("%08d") % ++_ordNo).str();
 }
 
-void VirtualOMS::initialize(std::map<std::string, OKExInstrument*>* _insList)
+void VirtualOMS::initialize(std::map<std::string, OKExInstrument*>* _insList, std::string _outputFilePath)
 {
 	insList = _insList;
 	std::map<std::string, OKExInstrument*>::iterator it;
@@ -54,6 +54,7 @@ void VirtualOMS::initialize(std::map<std::string, OKExInstrument*>* _insList)
 	{
 		it->second->execute = exeFunc;
 	}
+	outputFilePath = _outputFilePath;
 }
 
 OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums::tradeMode tdMode, OKExEnums::side side, double px, double sz, OKExEnums::ordType ordtype, std::string& msg)
@@ -496,4 +497,53 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 	exec->fillTime = tm;
 	exec->uTime = tm;
 	return exec;
+}
+
+void VirtualOMS::endOfDayReset(void)
+{
+	std::ofstream ordFile = std::ofstream(outputFilePath + "\\order_" + GlobalVariables::OKEx::suffix + GlobalVariables::OKEx::today.strday + ".csv");
+	std::ofstream tktFile = std::ofstream(outputFilePath + "\\ticket_" + GlobalVariables::OKEx::suffix + GlobalVariables::OKEx::today.strday + ".csv");
+	std::ofstream ackFile = std::ofstream(outputFilePath + "\\ack_" + GlobalVariables::OKEx::suffix + GlobalVariables::OKEx::today.strday + ".csv");
+
+	OKExOrder* ord;
+	ordTicket* tkt;
+	dataOrder* ack;
+
+	while (ordQueue->Count() > 0)
+	{
+		ord = ordQueue->Dequeue();
+		ordFile << ord->toString() << std::endl;
+		ordFile.flush();
+		ord->init();
+		ordPool->push(ord);
+	}
+
+	while (waitingOrderQueue->Count() > 0)
+	{
+		ordTktQueue->Enqueue(waitingOrderQueue->Dequeue());
+	}
+	while (ordTktQueue->Count() > 0)
+	{
+		tkt = ordTktQueue->Dequeue();
+		tktFile << tkt->toString() << std::endl;
+		tktFile.flush();
+		tkt->init();
+		tktPool->push(tkt);
+	}
+
+	while (ackQueue->Count() > 0)
+	{
+		ack = ackQueue->Dequeue();
+		ackFile << ack->toString() << std::endl;
+		ackFile.flush();
+		ack->init();
+		execPool->push(ack);
+	}
+
+	numOfSellOrd = 0;
+	numOfBuyOrd = 0;
+	numOfExecSellOrd = 0;
+	numOfExecBuyOrd = 0;
+	sellExecQty = 0;
+	buyExecQty = 0;
 }

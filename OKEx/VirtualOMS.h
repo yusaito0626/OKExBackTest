@@ -21,6 +21,7 @@ class VirtualOMS
 public:
 	~VirtualOMS() {};
 
+	std::string outputFilePath;
 	std::map<std::string, OKExInstrument*>* insList;
 	int numOfSellOrd;
 	int numOfBuyOrd;
@@ -29,7 +30,7 @@ public:
 	long long sellExecQty;
 	long long buyExecQty;
 
-	void initialize(std::map<std::string, OKExInstrument*>* _insList);
+	void initialize(std::map<std::string, OKExInstrument*>* _insList, std::string _outputFilePath);
 
 	//Put same parameters as live
 	OKExOrder* sendNewOrder(long long _tm,std::string instId,OKExEnums::tradeMode tdMode,OKExEnums::side side, double px, double sz,OKExEnums::ordType ordtype, std::string& msg);
@@ -40,6 +41,8 @@ public:
 	dataOrder* createAckTicket(long long _tm, ordTicket* tkt);
 	dataOrder* checkExecution(OKExInstrument* ins, dataOrder* ack);
 	dataOrder* execute(long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg);
+
+	void endOfDayReset(void);
 
 	static const int ORD_POOL_SIZE = 100000;
 	static const int EXE_POOL_SIZE = 500000;

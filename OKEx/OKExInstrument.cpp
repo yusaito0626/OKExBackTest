@@ -181,10 +181,12 @@ OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price h
         switch (ordit->second->status)
         {
         case OKExEnums::orderState::_WAIT_NEW:
+            ordit->second->ordId = tkt->ordId;
             ordit->second->status = OKExEnums::orderState::_LIVE;
             ordit->second->live = true;
             break;
         case OKExEnums::orderState::_WAIT_AMD:
+            ordit->second->ordId = tkt->ordId;
             ordit->second->sz = ordit->second->newSz;
             ordit->second->openSz = ordit->second->sz - ordit->second->execSz;
             if (ordit->second->openSz <= 0)
@@ -220,6 +222,7 @@ OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price h
             }
             break;
         case OKExEnums::orderState::_WAIT_CAN:
+            ordit->second->ordId = tkt->ordId;
             ordit->second->sz = ordit->second->execSz;
             ordit->second->openSz = 0;
             ordit->second->live = false;
@@ -1459,6 +1462,10 @@ void OKExInstrument::calcMid(void)
 {
     std::map<int, book*>::iterator itend = books->end();
     std::map<int, book*>::iterator itbegin = books->begin();
+    if (books->size() == 0)
+    {
+        return;
+    }
     if (bestAsk != itend && bestBid != itend)
     {
         mid = (bestAsk->second->px + bestBid->second->px) / 2;
@@ -1478,4 +1485,76 @@ void OKExInstrument::calcMid(void)
     {
         mid = bestAsk->second->px;
     }
+}
+
+std::string OKExInstrument::outputDailyResult(void)
+{
+    double avgSellPr;
+    double avgBuyPr;
+
+    if (tradedQtySell > 0)
+    {
+        avgSellPr = tradedAmtSell / tradedQtySell;
+    }
+    else
+    {
+        avgSellPr = 0;
+    }
+    if (tradedQtyBuy > 0)
+    {
+        avgBuyPr = tradedAmtBuy / tradedQtyBuy;
+    }
+    else
+    {
+        avgBuyPr = 0;
+    }
+    calcMid();
+
+    posPL = prevNetPos * (mid - baseMid);
+    tradePL = (tradedAmtSell - tradedQtySell * mid) + (tradedQtyBuy * mid - tradedAmtBuy);
+    totalPL = posPL + tradePL;
+
+    return instId + "," + std::to_string(open) + "," + std::to_string(high) + "," + std::to_string(low) + "," + std::to_string(last) + ","
+        + std::to_string(tradedQtySell) + "," + std::to_string(avgSellPr) + "," + std::to_string(tradedQtyBuy) + "," + std::to_string(avgBuyPr) + ","
+        + std::to_string(posPL) + "," + std::to_string(tradePL) + "," + std::to_string(totalPL);
+}
+
+void OKExInstrument::endOfDayReset(void)
+{
+    expTime = 0;
+    listTime = 0;
+
+    baseMid = mid;
+    prevNetPos = netPosition;
+
+    tradePL = 0.0;
+    posPL = 0.0;
+    totalPL = 0.0;
+
+    //The order objects are handled in OMS
+    ordList->clear();
+    bool desired = true;
+    bool expected = false;
+    while (true)
+    {
+        if (lckLiveOrdList.compare_exchange_weak(expected, desired))
+        {
+            liveOrdList->clear();
+            lckLiveOrdList = false;
+            break;
+        }
+        else
+        {
+            expected = false;
+        }
+    }
+
+    open = 0.0;
+    high = 0.0;
+    low = 0.0;
+
+    ts = 0;
+    lastOptTs = 0;
+
+    //Don't initialize factors
 }

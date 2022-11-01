@@ -238,6 +238,9 @@ public:
 	double getPriorQuantity(OKExEnums::side side, double px);
 	void calcMid(void);
 
+	std::string outputDailyResult(void);
+	void endOfDayReset(void);
+
 	boost::function<dataOrder* (long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)> execute;
 };
 

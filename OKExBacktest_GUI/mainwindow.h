@@ -55,6 +55,7 @@ public:
 
     void InitializeObjects(void);
     void SetNewDate(int date);
+    void EndOfDayReset(void);
 
     void InitilizeInsBox(void);
     void SetInstrunemt(std::string instId);

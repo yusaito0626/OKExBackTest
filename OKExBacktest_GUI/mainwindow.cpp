@@ -397,7 +397,7 @@ void MainWindow::UpdatePairsTab(void)
 void MainWindow::InitializeObjects(void)
 {
     calendar->Initialize(GlobalVariables::OKExBacktest_GUI::calandarFile);
-    feedReader->initialize();
+    feedReader->initialize(GlobalVariables::OKExBacktest_GUI::outputFilePath);
     insList = feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\master.txt");
     feedReader->readParamFile(GlobalVariables::OKExBacktest_GUI::paramFile);
 }
@@ -405,6 +405,13 @@ void MainWindow::InitializeObjects(void)
 void MainWindow::SetNewDate(int date)
 {
 
+}
+
+
+void MainWindow::EndOfDayReset(void)
+{
+    feedReader->endOfDayReset();
+    voms->endOfDayReset();
 }
 
 void MainWindow::on_testButton_clicked(void)
@@ -435,8 +442,10 @@ void MainWindow::test(void)
 
     while (it->first <= enddate)
     {
+        GlobalVariables::OKEx::today = it->second;
         feedFile = GlobalVariables::OKExBacktest_GUI::feedFilePath + "\\OKExFeed_" + it->second.strday + ".log.gz";
         feedReader->readFeedFile(feedFile);
+        EndOfDayReset();
         ++it;
     }
     ui->testPushbutton->setText("tested.");

@@ -109,6 +109,7 @@ struct dataOrder
     dataOrder();
     ~dataOrder();
     void init(void);
+    std::string toString(void);
 };
 
 struct OKExMktMsg
@@ -161,6 +162,7 @@ struct ordTicket
     ordTicket();
     ~ordTicket();
     void init(void);
+    std::string toString(void);
 };
 
 struct msgOrder

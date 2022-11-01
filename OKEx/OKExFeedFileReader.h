@@ -20,12 +20,16 @@ public:
 	int feedCount;
 	int lastFeedCount;
 
+	std::ofstream outputFile;
+
 	~OKExFeedFileReader();
-	void initialize(void);
+	void initialize(std::string outputFilePath);
 	std::map<std::string, OKExInstrument*>* initializeInsList(std::string masterfile);
 	void readParamFile(std::string paramfile);
 	void readFeedFile(std::string feedFile);
 	bool reflectOneMsg(OKExMktMsg* msg);
+
+	void endOfDayReset(void);
 
 	OKExInstrument* findInsByAlias(std::string alias, std::string uly);
 

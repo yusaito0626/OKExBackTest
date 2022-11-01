@@ -76,3 +76,22 @@ void OKExOrder::init(void)
 
 	priorQuantity = 0.0;
 }
+
+
+std::string OKExOrder::toString(void)
+{
+	return  ordId + ","
+		+ baseOrdId + ","
+		+ std::to_string(orgTime) + ","
+		+ std::to_string(updatedTime) + ","
+		+ std::to_string((int)status) + ","
+		+ std::to_string((int)side) + ","
+		+ std::to_string(px) + ","
+		+ std::to_string(sz) + ","
+		+ std::to_string(openSz) + ","
+		+ std::to_string(execSz) + ","
+		+ std::to_string(execAmt) + ","
+		+ std::to_string(avgPx) + ","
+		+ std::to_string(lastPx) + ","
+		+ std::to_string(lastSz);
+}

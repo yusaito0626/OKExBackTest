@@ -225,6 +225,25 @@ void dataOrder::init(void)
     moveTriggerPx = 0.0;
     pTime = 0;
 }
+std::string dataOrder::toString(void)
+{
+    return std::to_string(uTime) + ","
+        + std::to_string((int)tktType) + ","
+        + std::to_string((int)instType) + ","
+        + instId + ","
+        + ordId + ","
+        + clOrdId + ","
+        + std::to_string((int)side) + ","
+        + std::to_string(px) + ","
+        + std::to_string(sz) + ","
+        + std::to_string(fillPx) + ","
+        + std::to_string(fillSz) + ","
+        + std::to_string(fillTime) + ","
+        + std::to_string(avgPx) + ","
+        + std::to_string((int)state) + ","
+        + std::to_string(code) + ","
+        + msg;
+}
 
 OKExMktMsg::OKExMktMsg()
 {
@@ -328,6 +347,17 @@ void ordTicket::init(void)
     reduceOnly = false;
     cxlOnFail = false;
     reqId = "";
+}
+std::string ordTicket::toString(void)
+{
+    return std::to_string(ts) + ","
+        + std::to_string((int)tktType) + ","
+        + instId + ","
+        + ordId + ","
+        + clOrdId + ","
+        + std::to_string((int)side) + ","
+        + std::to_string(px) + ","
+        + std::to_string(sz);
 }
 
 msgOrder::msgOrder()

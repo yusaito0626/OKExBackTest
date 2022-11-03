@@ -221,7 +221,11 @@ public:
 	double execAskAmt;
 	double execBidAmt;
 	double skewWgtExecAsk;
-	double skewWgtExecBid;;
+	double skewWgtExecBid;
+
+	//Optimizer
+	OKExOrder* bidOrd;
+	OKExOrder* askOrd;
 
 	OKExInstrument();
 	~OKExInstrument();
@@ -236,6 +240,7 @@ public:
 	std::map<int, book*>::iterator findBest(int pr, OKExEnums::side side);
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);
+	void addNewOrder(OKExOrder* ord);
 	double getPriorQuantity(OKExEnums::side side, double px);
 	void calcMid(void);
 

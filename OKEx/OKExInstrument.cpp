@@ -267,11 +267,11 @@ bool book::executeOrder(dataOrder* trd)
             break;
         }
         
-        if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
-        {
-            liveOrders->erase(ordit->first);
-            return true;
-        }
+        //if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
+        //{
+        //    liveOrders->erase(ordit->first);
+        //    return true;
+        //}
     }
     return false;
 }
@@ -506,6 +506,10 @@ void position::init(void)
 
 OKExInstrument::OKExInstrument()
 {
+    //test
+    bidOrd = nullptr;
+    askOrd = nullptr;
+
     instId = "";
     instType = OKExEnums::instType::_NONE;
     std::string baseCcy = "";
@@ -1419,12 +1423,30 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
     book* bk;
     book* newbk;
     OKExOrder* neword;
-    if (ordit != ordList->end() && ordit->second->live)
+    if (ordit != ordList->end())
     {
-        bk = books->at(ordit->second->px);
+        bk = books->at((int)(ordit->second->px * priceUnit));
         if (dtord->fillSz > 0)//Execution
         {
             bk->executeOrder(dtord);
+            /*if (bk->executeOrder(dtord))
+            {
+                bool desired = true;
+                bool expected = false;
+                while (true)
+                {
+                    if (lckLiveOrdList.compare_exchange_weak(expected, desired))
+                    {
+                        liveOrdList->erase(ordit->first);
+                        lckLiveOrdList = false;
+                        break;
+                    }
+                    else
+                    {
+                        expected = false;
+                    }
+                }
+            }*/
             if (dtord->side == OKExEnums::side::_BUY)
             {
                 ++tradedCntBuy;
@@ -1443,13 +1465,14 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
             neword = bk->updateOrder(dtord);
             if (neword)
             {
-                newbk = books->at(neword->px);
+                newbk = books->at((int)(neword->px * priceUnit));
                 newbk->addOrder(neword);
                 
             }
         }
         if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
         {
+            bk->removeOrder(ordit->first);
             bool desired = true;
             bool expected = false;
             while (true)
@@ -1465,6 +1488,32 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                     expected = false;
                 }
             }
+        }
+    }
+}
+
+void OKExInstrument::addNewOrder(OKExOrder* ord)
+{
+    ordList->emplace(ord->baseOrdId, ord);
+    std::map<int, book*>::iterator bk = books->find((int)(ord->px * priceUnit));
+    if (bk != books->end())
+    {
+        bk->second->addOrder(ord);
+
+    }
+    bool desired = true;
+    bool expected = false;
+    while (true)
+    {
+        if (lckLiveOrdList.compare_exchange_weak(expected, desired))
+        {
+            liveOrdList->emplace(ord->baseOrdId, ord);
+            lckLiveOrdList = false;
+            break;
+        }
+        else
+        {
+            expected = false;
         }
     }
 }

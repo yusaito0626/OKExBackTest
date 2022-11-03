@@ -116,6 +116,8 @@ OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums
 	ord->updatedTime = tm;
 
 	//This ticket is what we send to OKEx
+	tkt->idate = GlobalVariables::OKEx::today.iday;
+	tkt->ts = tm;
 	tkt->clOrdId = ord->ordId;
 	tkt->instId = instId;
 	tkt->ordId = ord->ordId;
@@ -129,22 +131,7 @@ OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums
 	ordTktQueue->Enqueue(tkt);
 	waitingOrderQueue->Enqueue(tkt);
 	ordQueue->Enqueue(ord);
-	ins->ordList->emplace(ord->baseOrdId, ord);
-	bool desired = true;
-	bool expected = false;
-	while (true)
-	{
-		if (ins->lckLiveOrdList.compare_exchange_weak(expected, desired))
-		{
-			ins->liveOrdList->emplace(ord->baseOrdId, ord);
-			ins->lckLiveOrdList = false;
-			break;
-		}
-		else
-		{
-			expected = false;
-		}
-	}
+	ins->addNewOrder(ord);
 	return ord;
 }
 OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::string ordId, double newPx, double newSz, std::string& msg)
@@ -158,6 +145,7 @@ OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::stri
 		return nullptr;
 	}
 	OKExInstrument* ins = insList->at(instId);
+	orditend = ins->ordList->end();
 	if (ins->ordList->find(ordId) == orditend)
 	{
 		msg = "Unknown ordId. ordId:" + ordId;
@@ -209,6 +197,8 @@ OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::stri
 	ord->status = OKExEnums::orderState::_WAIT_AMD;
 	ord->updatedTime = tm;
 
+	tkt->idate = GlobalVariables::OKEx::today.iday;
+	tkt->ts = tm;
 	tkt->ordId = newOrdId;
 	tkt->clOrdId = ord->baseOrdId;//Use clOrdId as baseOrdId
 	tkt->instId = instId;
@@ -230,6 +220,7 @@ OKExOrder* VirtualOMS::sendCanOrder(long long _tm, std::string instId, std::stri
 		return nullptr;
 	}
 	OKExInstrument* ins = insList->at(instId);
+	orditend = ins->ordList->end();
 	if (ins->ordList->find(ordId) == orditend)
 	{
 		msg = "Unknown ordId. ordId:" + ordId;
@@ -263,6 +254,8 @@ OKExOrder* VirtualOMS::sendCanOrder(long long _tm, std::string instId, std::stri
 	ord->updatedTime = tm;
 	ord->status = OKExEnums::orderState::_WAIT_CAN;
 
+	tkt->idate = GlobalVariables::OKEx::today.iday;
+	tkt->ts = tm;
 	tkt->ordId = newOrdId;
 	tkt->clOrdId = ord->baseOrdId;
 	tkt->instId = instId;
@@ -288,8 +281,21 @@ void VirtualOMS::checkWaitingOrdQueue(long long _tm)
 				tkt = waitingOrderQueue->Dequeue();
 				ins = insList->at(tkt->instId);
 				ack = createAckTicket(_tm, tkt);
+				ins->updateOrders(ack);
 				ackQueue->Enqueue(ack);
 			}
+			else
+			{
+				break;
+			}
+		}
+		else
+		{
+			tkt = waitingOrderQueue->Dequeue();
+			ins = insList->at(tkt->instId);
+			ack = createAckTicket(_tm, tkt);
+			ins->updateOrders(ack);
+			ackQueue->Enqueue(ack);
 		}
 	}
 }
@@ -345,7 +351,7 @@ dataOrder* VirtualOMS::createAckTicket(long long _tm, ordTicket* tkt)
 	case OKExEnums::ticketType::_SEND_MOD:
 		dtord->tktType = OKExEnums::ticketType::_ACK_MOD;
 		dtord->ordId = getOrdId(tkt->instId);
-		dtord->clOrdId = dtord->clOrdId;
+		dtord->clOrdId = tkt->clOrdId;
 		dtord->ccy = tkt->ccy;
 		dtord->instId = tkt->instId;
 		dtord->ordType = tkt->ordType;
@@ -377,7 +383,7 @@ dataOrder* VirtualOMS::createAckTicket(long long _tm, ordTicket* tkt)
 	case OKExEnums::ticketType::_SEND_CAN:
 		dtord->tktType = OKExEnums::ticketType::_ACK_MOD;
 		dtord->ordId = getOrdId(tkt->instId);
-		dtord->clOrdId = dtord->clOrdId;
+		dtord->clOrdId = tkt->clOrdId;
 		dtord->ccy = tkt->ccy;
 		dtord->instId = tkt->instId;
 		dtord->ordType = tkt->ordType;
@@ -496,6 +502,14 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 	exec->fillSz = sz;
 	exec->fillTime = tm;
 	exec->uTime = tm;
+	if (ord->sz - ord->execSz - sz > 0)
+	{
+		exec->state = OKExEnums::orderState::_PARTIALLY_FILLED;
+	}
+	else
+	{
+		exec->state = OKExEnums::orderState::_FILLED;
+	}
 	return exec;
 }
 

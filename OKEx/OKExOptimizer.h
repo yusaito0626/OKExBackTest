@@ -1,6 +1,8 @@
 #pragma once
 
 #include "OKExInstrument.h"
+#include "VirtualOMS.h"
+#include "OKExEnums.h"
 
 class OKExOptimizer
 {

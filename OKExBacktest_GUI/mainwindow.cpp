@@ -400,6 +400,7 @@ void MainWindow::InitializeObjects(void)
     feedReader->initialize(GlobalVariables::OKExBacktest_GUI::outputFilePath);
     insList = feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\master.txt");
     feedReader->readParamFile(GlobalVariables::OKExBacktest_GUI::paramFile);
+    voms->initialize(insList, GlobalVariables::OKExBacktest_GUI::outputFilePath);
 }
 
 void MainWindow::SetNewDate(int date)

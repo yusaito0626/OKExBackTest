@@ -760,8 +760,20 @@ void OKExInstrument::updateTrade(OKExMktMsg* msg)
 
 void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
 {
-    books->clear();
+    PoolingStack::PoolingStack<book*> bookPool;
     bookDepth = depth;
+
+    if (books->size() > 0)
+    {
+        std::map<int, book*>::iterator it;
+        std::map<int, book*>::iterator itend = books->end();
+        for (it = books->begin(); it != itend; ++it)
+        {
+            it->second->init();
+            bookPool.push(it->second);
+        }
+        books->clear();
+    }
 
     std::list<dataBooks*>::iterator it;
     std::list<dataBooks*>::iterator itend = msg->books->end();
@@ -798,7 +810,15 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
                     {
                         (*msgbookit)->sz *= (double)ctVal;
                     }
-                    book* bk = new book();
+                    book* bk;
+                    if (bookPool.Count() > 0)
+                    {
+                        bk = bookPool.pop();
+                    }
+                    else
+                    {
+                        bk = new book();
+                    }
                     bk->updateBook(OKExEnums::side::_BUY, *msgbookit);
                     bids.emplace((int)((*msgbookit)->px * priceUnit), bk);
                     if (tempbestbid == 0 || tempbestbid < (int)((*msgbookit)->px * priceUnit))
@@ -825,7 +845,15 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
                     {
                         (*msgbookit)->sz *= (double)ctVal;
                     }
-                    book* bk = new book();
+                    book* bk;
+                    if (bookPool.Count() > 0)
+                    {
+                        bk = bookPool.pop();
+                    }
+                    else
+                    {
+                        bk = new book();
+                    }
                     bk->updateBook(OKExEnums::side::_SELL, *msgbookit);
                     asks.emplace((int)((*msgbookit)->px * priceUnit), bk);
                     if (tempbestask == 0 || tempbestask > (int)((*msgbookit)->px * priceUnit))
@@ -889,7 +917,15 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
         }
         else
         {
-            book* bk = new book();
+            book* bk;
+            if (bookPool.Count() > 0)
+            {
+                bk = bookPool.pop();
+            }
+            else
+            {
+                bk = new book();
+            }
             bk->px = bidpr;
             books->emplace(bidpr, bk);
         }
@@ -899,7 +935,15 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
         }
         else
         {
-            book* bk = new book();
+            book* bk;
+            if (bookPool.Count() > 0)
+            {
+                bk = bookPool.pop();
+            }
+            else
+            {
+                bk = new book();
+            }
             bk->px = askpr;
             books->emplace(askpr, bk);
         }
@@ -916,6 +960,12 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
     if (tempbestbid > 0)
     {
         bestBid = books->find(tempbestbid);
+    }
+    book* temp;
+    if (bookPool.Count() > 0)
+    {
+        temp = bookPool.pop();
+        delete temp;
     }
 }
 

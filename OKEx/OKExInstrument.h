@@ -5,6 +5,7 @@
 #include "OKExMessage.h"
 
 #include "../utils/ring.h"
+#include "../utils/LockFreeQueue.h"
 
 class book
 {

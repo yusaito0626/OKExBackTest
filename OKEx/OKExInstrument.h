@@ -34,8 +34,8 @@ public:
 	OKExOrder* removeOrder(std::string baseOrdId);
 	OKExOrder* getTopOrder(void);
 	OKExOrder* getTopOrder(OKExEnums::side sd);
-	OKExOrder* updateOrder(dataOrder* tkt);
-	bool executeOrder(dataOrder* trd);
+	//OKExOrder* updateOrder(dataOrder* tkt);
+	//bool executeOrder(dataOrder* trd);
 
 };
 
@@ -143,6 +143,13 @@ public:
 	std::map<std::string, OKExOrder*>* ordList;
 	std::map<std::string, OKExOrder*>* liveOrdList;
 	std::atomic<bool> lckLiveOrdList;
+
+	int intradayOrdBuy;
+	int intradayOrdSell;
+	int intradayExeBuy;
+	int intradayExeSell;
+	int intradayExeAmtBuy;
+	int intradayExeAmtSell;
 
 	int tradedCntBuy;
 	int tradedCntSell;

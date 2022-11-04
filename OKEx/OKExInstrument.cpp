@@ -172,109 +172,117 @@ OKExOrder* book::getTopOrder(OKExEnums::side sd)
     return ord;
 }
 
-OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price has been changed
-{
-    std::map<std::string, OKExOrder*>::iterator ordit = liveOrders->find(tkt->clOrdId);
-    OKExOrder* output = nullptr;
-    if (ordit != liveOrders->end())
-    {
-        switch (ordit->second->status)
-        {
-        case OKExEnums::orderState::_WAIT_NEW:
-            ordit->second->ordId = tkt->ordId;
-            ordit->second->status = OKExEnums::orderState::_LIVE;
-            ordit->second->live = true;
-            break;
-        case OKExEnums::orderState::_WAIT_AMD:
-            ordit->second->ordId = tkt->ordId;
-            ordit->second->sz = ordit->second->newSz;
-            ordit->second->openSz = ordit->second->sz - ordit->second->execSz;
-            if (ordit->second->openSz <= 0)
-            {
-                ordit->second->openSz = 0;
-                ordit->second->live = false;
-                if (ordit->second->execSz > 0)
-                {
-                    ordit->second->status = OKExEnums::orderState::_FILLED;
-                }
-                else
-                {
-                    ordit->second->status = OKExEnums::orderState::_CANCELED;
-                }
-                liveOrders->erase(ordit->first);
-            }
-            else
-            {
-                if (ordit->second->execSz > 0)
-                {
-                    ordit->second->status = OKExEnums::orderState::_PARTIALLY_FILLED;
-                }
-                else
-                {
-                    ordit->second->status = OKExEnums::orderState::_LIVE;
-                }
-                if (ordit->second->px != ordit->second->newPx)
-                {
-                    ordit->second->px = ordit->second->newPx;
-                    output = ordit->second;
-                    liveOrders->erase(ordit->first);
-                }
-            }
-            break;
-        case OKExEnums::orderState::_WAIT_CAN:
-            ordit->second->ordId = tkt->ordId;
-            ordit->second->sz = ordit->second->execSz;
-            ordit->second->openSz = 0;
-            ordit->second->live = false;
-            if (ordit->second->execSz > 0)
-            {
-                ordit->second->status = OKExEnums::orderState::_FILLED;
-            }
-            else
-            {
-                ordit->second->status = OKExEnums::orderState::_CANCELED;
-            }
-            liveOrders->erase(ordit->first);
-            break;
-        default:
-            break;
-        }
-    }
-    return output;
-}
-bool book::executeOrder(dataOrder* trd)
-{
-    std::map<std::string, OKExOrder*>::iterator ordit = liveOrders->find(trd->clOrdId);
-    if (ordit != liveOrders->end())
-    {
-        ordit->second->lastSz = trd->fillSz;
-        ordit->second->execSz += trd->fillSz;
-        ordit->second->openSz -= trd->fillSz;
-        ordit->second->lastPx = trd->px;
-        ordit->second->avgPx = trd->avgPx;
-        switch (ordit->second->status)
-        {
-        case OKExEnums::orderState::_WAIT_NEW:
-        case OKExEnums::orderState::_WAIT_AMD:
-        case OKExEnums::orderState::_WAIT_CAN:
-            if (trd->state == OKExEnums::orderState::_FILLED)
-            {
-                ordit->second->status = trd->state;
-            }
-            break;
-        default:
-            ordit->second->status = trd->state;
-            break;
-        }
-        
-        //if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
-        //{
-        //    liveOrders->erase(ordit->first);
-        //    return true;
-        //}
-    }
-    return false;
-}
+//OKExOrder* book::updateOrder(dataOrder* tkt)//Return order object if the price has been changed
+//{
+//    std::map<std::string, OKExOrder*>::iterator ordit = liveOrders->find(tkt->clOrdId);
+//    OKExOrder* output = nullptr;
+//    if (ordit != liveOrders->end())
+//    {
+//        switch (ordit->second->status)
+//        {
+//        case OKExEnums::orderState::_WAIT_NEW:
+//            ordit->second->ordId = tkt->ordId;
+//            ordit->second->status = OKExEnums::orderState::_LIVE;
+//            ordit->second->live = true;
+//            break;
+//        case OKExEnums::orderState::_WAIT_AMD:
+//            ordit->second->ordId = tkt->ordId;
+//            ordit->second->sz = ordit->second->newSz;
+//            ordit->second->openSz = ordit->second->sz - ordit->second->execSz;
+//            if (ordit->second->openSz <= 0)
+//            {
+//                ordit->second->openSz = 0;
+//                ordit->second->live = false;
+//                if (ordit->second->execSz > 0)
+//                {
+//                    ordit->second->status = OKExEnums::orderState::_FILLED;
+//                }
+//                else
+//                {
+//                    ordit->second->status = OKExEnums::orderState::_CANCELED;
+//                }
+//                liveOrders->erase(ordit->first);
+//            }
+//            else
+//            {
+//                if (ordit->second->execSz > 0)
+//                {
+//                    ordit->second->status = OKExEnums::orderState::_PARTIALLY_FILLED;
+//                }
+//                else
+//                {
+//                    ordit->second->status = OKExEnums::orderState::_LIVE;
+//                }
+//                if (ordit->second->px != ordit->second->newPx)
+//                {
+//                    ordit->second->px = ordit->second->newPx;
+//                    output = ordit->second;
+//                    liveOrders->erase(ordit->first);
+//                }
+//            }
+//            break;
+//        case OKExEnums::orderState::_WAIT_CAN:
+//            ordit->second->ordId = tkt->ordId;
+//            ordit->second->sz = ordit->second->execSz;
+//            ordit->second->openSz = 0;
+//            ordit->second->live = false;
+//            if (ordit->second->execSz > 0)
+//            {
+//                ordit->second->status = OKExEnums::orderState::_FILLED;
+//            }
+//            else
+//            {
+//                ordit->second->status = OKExEnums::orderState::_CANCELED;
+//            }
+//            liveOrders->erase(ordit->first);
+//            break;
+//        default:
+//            break;
+//        }
+//    }
+//    return output;
+//}
+//bool book::executeOrder(dataOrder* trd)
+//{
+//    std::map<std::string, OKExOrder*>::iterator ordit = liveOrders->find(trd->clOrdId);
+//    if (ordit != liveOrders->end())
+//    {
+//        ordit->second->lastSz = trd->fillSz;
+//        ordit->second->execSz += trd->fillSz;
+//        ordit->second->openSz -= trd->fillSz;
+//        ordit->second->lastPx = trd->px;
+//        ordit->second->avgPx = trd->avgPx;
+//        switch (ordit->second->status)
+//        {
+//        case OKExEnums::orderState::_WAIT_NEW:
+//        case OKExEnums::orderState::_WAIT_AMD:
+//        case OKExEnums::orderState::_WAIT_CAN:
+//            if (ordit->second->openSz < 0)
+//            {
+//                ordit->second->status = OKExEnums::orderState::_FILLED;
+//            }
+//            
+//            break;
+//        default:
+//            if (ordit->second->openSz > 0)
+//            {
+//                ordit->second->status = OKExEnums::orderState::_PARTIALLY_FILLED;
+//            }
+//            else
+//            {
+//                ordit->second->status = OKExEnums::orderState::_FILLED;
+//            }
+//            break;
+//        }
+//        
+//        //if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
+//        //{
+//        //    liveOrders->erase(ordit->first);
+//        //    return true;
+//        //}
+//    }
+//    return false;
+//}
 
 void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
 {
@@ -557,6 +565,14 @@ OKExInstrument::OKExInstrument()
     ordList = new std::map<std::string, OKExOrder*>();
     liveOrdList = new std::map<std::string, OKExOrder*>();
     lckLiveOrdList = false;
+
+
+    intradayOrdBuy = 0;
+    intradayOrdSell = 0;
+    intradayExeBuy = 0;
+    intradayExeSell = 0;
+    intradayExeAmtBuy = 0;
+    intradayExeAmtSell = 0;
 
     tradedCntBuy = 0;
     tradedCntSell = 0;
@@ -971,6 +987,21 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
         temp = bookPool.pop();
         delete temp;
     }
+    if (liveOrdList->size() > 0)
+    {
+        std::map<std::string, OKExOrder*>::iterator it;
+        std::map<std::string, OKExOrder*>::iterator itend = liveOrdList->end();
+        std::map<int, book*>::iterator bkit;
+        std::map<int, book*>::iterator bkitend = books->end();
+        for (it = liveOrdList->begin(); it != itend; ++it)
+        {
+            bkit = books->find((int)(it->second->px * priceUnit));
+            if (bkit != bkitend)
+            {
+                bkit->second->liveOrders->emplace(it->first, it->second);
+            }
+        }
+    }
 }
 
 void OKExInstrument::reshapeBooks(void)
@@ -1226,7 +1257,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
         }
     }
     
-    return true;
+    return false;
 }
 
 
@@ -1419,18 +1450,196 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
     //Call book->updateOrder if it's an ack of the order
     //Call book->executeOrder if it's an execution.
     //Update Variables on Instrument class and Position Class.
-    std::map<std::string, OKExOrder*>::iterator ordit = ordList->find(dtord->clOrdId);
-    book* bk;
-    book* newbk;
-    OKExOrder* neword;
-    if (ordit != ordList->end())
+    if (dtord->clOrdId == "ETH-USDT2022070100229260")
     {
-        bk = books->at((int)(ordit->second->px * priceUnit));
-        if (dtord->fillSz > 0)//Execution
+        bool stop = true;
+    }
+    std::map<std::string, OKExOrder*>::iterator ordit = liveOrdList->find(dtord->clOrdId);
+    std::map<int, book*>::iterator bk;
+    std::map<int,book*>::iterator newbk;
+    OKExOrder* neword;
+    if (ordit != liveOrdList->end())
+    {
+        bk = books->find((int)(ordit->second->px * priceUnit));
+        if (bk != books->end())
         {
-            bk->executeOrder(dtord);
-            /*if (bk->executeOrder(dtord))
+            if (dtord->fillSz > 0)//Execution
             {
+                ordit->second->ordId = dtord->ordId;
+                ordit->second->lastSz = dtord->fillSz;
+                ordit->second->execSz += dtord->fillSz;
+                ordit->second->openSz -= dtord->fillSz;
+                ordit->second->lastPx = dtord->px;
+                ordit->second->avgPx = dtord->avgPx;
+                switch (ordit->second->status)
+                {
+                case OKExEnums::orderState::_WAIT_NEW:
+                case OKExEnums::orderState::_WAIT_AMD:
+                case OKExEnums::orderState::_WAIT_CAN:
+                    if (ordit->second->openSz < lotSz)
+                    {
+                        ordit->second->openSz = 0;
+                        ordit->second->execSz = ordit->second->sz;
+                        ordit->second->status = OKExEnums::orderState::_FILLED;
+                        ordit->second->live = false;
+                    }
+
+                    break;
+                default:
+                    if (ordit->second->openSz < lotSz)
+                    {
+                        ordit->second->openSz = 0;
+                        ordit->second->execSz = ordit->second->sz;
+                        ordit->second->status = OKExEnums::orderState::_FILLED;
+                        ordit->second->live = false;
+                    }
+                    else
+                    {
+                        ordit->second->status = OKExEnums::orderState::_PARTIALLY_FILLED;
+                    }
+                    break;
+                }
+                //bk->executeOrder(dtord);
+                /*if (bk->executeOrder(dtord))
+                {
+                    bool desired = true;
+                    bool expected = false;
+                    while (true)
+                    {
+                        if (lckLiveOrdList.compare_exchange_weak(expected, desired))
+                        {
+                            liveOrdList->erase(ordit->first);
+                            lckLiveOrdList = false;
+                            break;
+                        }
+                        else
+                        {
+                            expected = false;
+                        }
+                    }
+                }*/
+                if (dtord->side == OKExEnums::side::_BUY)
+                {
+                    ++tradedCntBuy;
+                    tradedQtyBuy += dtord->fillSz;
+                    tradedAmtBuy += dtord->fillSz * dtord->fillPx;
+                    intradayExeAmtBuy += dtord->fillSz * dtord->fillPx;
+                }
+                else if (dtord->side == OKExEnums::side::_SELL)
+                {
+                    ++tradedCntSell;
+                    tradedQtySell += dtord->fillSz;
+                    tradedAmtSell += dtord->fillSz * dtord->fillPx;
+                    intradayExeAmtSell += dtord->fillSz * dtord->fillPx;
+                }
+            }
+            else
+            {
+                OKExOrder* output = nullptr;
+                if (ordit != liveOrdList->end())
+                {
+                    switch (ordit->second->status)
+                    {
+                    case OKExEnums::orderState::_WAIT_NEW:
+                        ordit->second->ordId = dtord->ordId;
+                        ordit->second->status = OKExEnums::orderState::_LIVE;
+                        ordit->second->live = true;
+                        switch (ordit->second->side)
+                        {
+                        case OKExEnums::side::_BUY:
+                            ++intradayOrdBuy;
+                            break;
+                        case OKExEnums::side::_SELL:
+                            ++intradayOrdSell;
+                            break;
+                        default:
+                            break;
+                        }
+                        break;
+                    case OKExEnums::orderState::_WAIT_AMD:
+                        ordit->second->ordId = dtord->ordId;
+                        ordit->second->sz = ordit->second->newSz;
+                        ordit->second->openSz = ordit->second->sz - ordit->second->execSz;
+                        if (ordit->second->openSz < lotSz)
+                        {
+                            ordit->second->openSz = 0;
+                            ordit->second->live = false;
+                            if (ordit->second->execSz > 0)
+                            {
+                                ordit->second->status = OKExEnums::orderState::_FILLED;
+                            }
+                            else
+                            {
+                                ordit->second->status = OKExEnums::orderState::_CANCELED;
+                            }
+                        }
+                        else
+                        {
+                            if (ordit->second->execSz > 0)
+                            {
+                                ordit->second->status = OKExEnums::orderState::_PARTIALLY_FILLED;
+                            }
+                            else
+                            {
+                                ordit->second->status = OKExEnums::orderState::_LIVE;
+                            }
+                            if (ordit->second->px != ordit->second->newPx)
+                            {
+                                ordit->second->px = ordit->second->newPx;
+                                output = ordit->second;
+                                bk->second->removeOrder(ordit->first);
+                                newbk = books->find((int)(ordit->second->px * priceUnit));
+                                if (newbk != books->end())
+                                {
+                                    newbk->second->addOrder(ordit->second);
+                                }
+                            }
+                        }
+                        break;
+                    case OKExEnums::orderState::_WAIT_CAN:
+                        ordit->second->ordId = dtord->ordId;
+                        ordit->second->sz = ordit->second->execSz;
+                        ordit->second->openSz = 0;
+                        ordit->second->live = false;
+                        if (ordit->second->execSz > 0)
+                        {
+                            ordit->second->status = OKExEnums::orderState::_FILLED;
+                        }
+                        else
+                        {
+                            ordit->second->status = OKExEnums::orderState::_CANCELED;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                //neword = bk->updateOrder(dtord);
+                //if (neword)
+                //{
+                //    newbk = books->at((int)(neword->px * priceUnit));
+                //    newbk->addOrder(neword);
+                //    
+                //}
+            }
+            if ((ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED))
+            {
+                if (ordit->second->status == OKExEnums::orderState::_FILLED)
+                {
+                    switch (ordit->second->side)
+                    {
+                    case OKExEnums::side::_BUY:
+                        ++intradayExeBuy;
+                        break;
+                    case OKExEnums::side::_SELL:
+                        ++intradayExeSell;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+
+                bk->second->removeOrder(ordit->first);
                 bool desired = true;
                 bool expected = false;
                 while (true)
@@ -1445,47 +1654,6 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                     {
                         expected = false;
                     }
-                }
-            }*/
-            if (dtord->side == OKExEnums::side::_BUY)
-            {
-                ++tradedCntBuy;
-                tradedQtyBuy += dtord->fillSz;
-                tradedAmtBuy += dtord->fillSz * dtord->fillPx;
-            }
-            else if (dtord->side == OKExEnums::side::_SELL)
-            {
-                ++tradedCntSell;
-                tradedQtySell += dtord->fillSz;
-                tradedAmtSell += dtord->fillSz * dtord->fillPx;
-            }
-        }
-        else
-        {
-            neword = bk->updateOrder(dtord);
-            if (neword)
-            {
-                newbk = books->at((int)(neword->px * priceUnit));
-                newbk->addOrder(neword);
-                
-            }
-        }
-        if (ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED)
-        {
-            bk->removeOrder(ordit->first);
-            bool desired = true;
-            bool expected = false;
-            while (true)
-            {
-                if (lckLiveOrdList.compare_exchange_weak(expected, desired))
-                {
-                    liveOrdList->erase(ordit->first);
-                    lckLiveOrdList = false;
-                    break;
-                }
-                else
-                {
-                    expected = false;
                 }
             }
         }
@@ -1654,6 +1822,13 @@ void OKExInstrument::endOfDayReset(void)
 
     ts = 0;
     lastOptTs = 0;
+
+    intradayOrdBuy = 0;
+    intradayOrdSell = 0;
+    intradayExeBuy = 0;
+    intradayExeSell = 0;
+    intradayExeAmtBuy = 0;
+    intradayExeAmtSell = 0;
 
     //Don't initialize factors
 }

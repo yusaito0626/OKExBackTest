@@ -156,11 +156,48 @@ void MainWindow::UpdateDisplay(void)
         }
 
         //MainTab
+        //Summary
+        int exeAmtBuy = 0;
+        int exeAmtSell = 0;
+        int numOfExeBuy = 0;
+        int numOfExeSell = 0;
+        int numOfOrdBuy = 0;
+        int numOfOrdSell = 0;
+        int numOfInsBuy = 0;
+        int numOfInsSell = 0;
+        std::map<std::string, OKExInstrument*>::iterator it;
+        std::map<std::string, OKExInstrument*>::iterator itend = insList->end();
+        for (it = insList->begin(); it != itend; ++it)
+        {
+            exeAmtBuy += it->second->intradayExeAmtBuy;
+            exeAmtSell += it->second->intradayExeAmtSell;
+            numOfExeBuy += it->second->intradayExeBuy;
+            numOfExeSell += it->second->intradayExeSell;
+            numOfOrdBuy += it->second->intradayOrdBuy;
+            numOfOrdSell += it->second->intradayOrdSell;
+            if (it->second->intradayOrdBuy > 0)
+            {
+                ++numOfInsBuy;
+            }
+            if (it->second->intradayOrdSell > 0)
+            {
+                ++numOfInsSell;
+            }
+        }
+        ui->lblSmryExeAmtBuy->setText(QString("%L1").arg(exeAmtBuy));
+        ui->lblSmryExeAmtSell->setText(QString("%L1").arg(exeAmtSell));
+        ui->lblSmryExeBuy->setText(QString("%L1").arg(numOfExeBuy));
+        ui->lblSmryExeSell->setText(QString("%L1").arg(numOfExeSell));
+        ui->lblSmryOdrBuy->setText(QString("%L1").arg(numOfOrdBuy));
+        ui->lblSmryOdrSell->setText(QString("%L1").arg(numOfOrdSell));
+        ui->lblSmryInsBuy->setText(QString("%L1").arg(numOfInsBuy));
+        ui->lblSmryInsSell->setText(QString("%L1").arg(numOfInsSell));
+        //Feed
         lastfeedCount = feedCount;
         feedCount = feedReader->feedCount;
         ui->lblFeedAll->setText(QString("%L1").arg(feedCount));
         ui->lblFeedInc->setText(QString("%L1").arg(feedCount - lastfeedCount));
-
+   
         //SymbolTab
         if (displayedIns)
         {

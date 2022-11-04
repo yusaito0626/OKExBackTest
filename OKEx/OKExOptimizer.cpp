@@ -25,7 +25,7 @@ void OKExOptimizer::optimize(OKExInstrument* ins)
 
 	if (!ins->askOrd)
 	{
-		ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, ins->bestAsk->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
+		ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, ins->bestAsk->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
 	}
 	else if (ins->askOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->askOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->askOrd->status != OKExEnums::orderState::_WAIT_CAN)
 	{

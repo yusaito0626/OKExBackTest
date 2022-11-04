@@ -502,6 +502,7 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 	exec->fillSz = sz;
 	exec->fillTime = tm;
 	exec->uTime = tm;
+	exec->msg = msg;
 	if (ord->sz - ord->execSz - sz > 0)
 	{
 		exec->state = OKExEnums::orderState::_PARTIALLY_FILLED;
@@ -510,6 +511,7 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 	{
 		exec->state = OKExEnums::orderState::_FILLED;
 	}
+	ackQueue->Enqueue(exec);
 	return exec;
 }
 

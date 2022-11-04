@@ -95,9 +95,11 @@ void book::init(void)
     liqOrd = 0;
     numOfOrdBuy = 0;
     numOfOrdSell = 0;
+    liveOrders->clear();
     szMyOrd = 0.0;
     numOfMyOrd = 0;
     ts = 0;
+    recentExec = 0;
 }
 
 void book::addOrder(OKExOrder* ord)
@@ -998,7 +1000,8 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
             bkit = books->find((int)(it->second->px * priceUnit));
             if (bkit != bkitend)
             {
-                bkit->second->liveOrders->emplace(it->first, it->second);
+                bkit->second->addOrder(it->second);
+//                bkit->second->liveOrders->emplace(it->first, it->second);
             }
         }
     }
@@ -1273,6 +1276,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
     std::string msg;
     OKExOrder* ord = nullptr;
     OKExEnums::side ordSide = OKExEnums::side::_NONE;
+    dataOrder* exec;
     switch (currentbk->second->side)
     {
     case OKExEnums::side::_BUY:
@@ -1287,7 +1291,9 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                 {
                     if (ordit->second->side != currentbk->second->side)
                     {
-                        execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
+                        msg = "OKExInstrument 1294";
+                        exec = execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
+                        updateOrders(exec);
                     }
                 }
             }
@@ -1305,7 +1311,9 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                 {
                     if (ordit->second->side != currentbk->second->side)
                     {
-                        execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
+                        msg = "OKExInstrument 1313";
+                        exec = execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
+                        updateOrders(exec);
                     }
                 }
             }
@@ -1374,6 +1382,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                     }
                     dataOrder* exec;
                     ord->priorQuantity = 0;
+                    msg = "OKExInstrument 1382";
                     exec = execute(ts, instId, ord, execSz, currentbk->second->px, msg);
                     updateOrders(exec);
                     execSzAll -= execSz;
@@ -1453,6 +1462,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
     if (dtord->clOrdId == "ETH-USDT2022070100229260")
     {
         bool stop = true;
+        stop = true;
     }
     std::map<std::string, OKExOrder*>::iterator ordit = liveOrdList->find(dtord->clOrdId);
     std::map<int, book*>::iterator bk;

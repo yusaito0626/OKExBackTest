@@ -7,38 +7,44 @@ void OKExOptimizer::optimize(OKExInstrument* ins)
 {
 	//Simple Testing Optimization
 	std::string msg;
-	if (!ins->bidOrd)
+	if (ins->bestBid != ins->books->end())
 	{
-		ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, ins->bestBid->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
+		if (!ins->bidOrd)
+		{
+			ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, ins->bestBid->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
+		}
+		else if (ins->bidOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->bidOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->bidOrd->status != OKExEnums::orderState::_WAIT_CAN)
+		{
+			if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
+			{
+				ins->bidOrd = nullptr;
+			}
+			else if (ins->bidOrd->px != ins->bestBid->second->px)
+			{
+				ins->bidOrd = voms->sendModOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, ins->bestBid->second->px, ins->bidOrd->sz, msg);
+			}
+		}
 	}
-	else if (ins->bidOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->bidOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->bidOrd->status != OKExEnums::orderState::_WAIT_CAN)
+	
+	if (ins->bestAsk != ins->books->end())
 	{
-		if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
+		if (!ins->askOrd)
 		{
-			ins->bidOrd = nullptr;
+			ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, ins->bestAsk->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
 		}
-		else if (ins->bidOrd->px != ins->bestBid->second->px)
+		else if (ins->askOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->askOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->askOrd->status != OKExEnums::orderState::_WAIT_CAN)
 		{
-			ins->bidOrd = voms->sendModOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, ins->bestBid->second->px, ins->bidOrd->sz, msg);
+			if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
+			{
+				ins->askOrd = nullptr;
+			}
+			else if (ins->askOrd->px != ins->bestAsk->second->px)
+			{
+				ins->askOrd = voms->sendModOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, ins->bestAsk->second->px, ins->askOrd->sz, msg);
+			}
 		}
-	}		
-
-	if (!ins->askOrd)
-	{
-		ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, ins->bestAsk->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
 	}
-	else if (ins->askOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->askOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->askOrd->status != OKExEnums::orderState::_WAIT_CAN)
-	{
-		if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
-		{
-			ins->askOrd = nullptr;
-		}
-		else if (ins->askOrd->px != ins->bestAsk->second->px)
-		{
-			ins->askOrd = voms->sendModOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, ins->bestAsk->second->px, ins->askOrd->sz, msg);
-		}
-
-	}
+	
 
 }
 

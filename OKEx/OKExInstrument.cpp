@@ -567,7 +567,7 @@ OKExInstrument::OKExInstrument()
     ordList = new std::map<std::string, OKExOrder*>();
     liveOrdList = new std::map<std::string, OKExOrder*>();
     lckLiveOrdList = false;
-
+    waitingExeQueue = new LockFreeQueue::SISOQueue<dataOrder*>();
 
     intradayOrdBuy = 0;
     intradayOrdSell = 0;
@@ -927,6 +927,7 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
         bk->init();
         bk->px = temppr;
         books->emplace(bk->px, bk);
+        temppr += tick;
     }
 
     while (i < bookDepth)
@@ -1072,7 +1073,7 @@ std::map<int, book*>::iterator OKExInstrument::findBest(int pr, OKExEnums::side 
             while (it != itbegin)
             {
                 --it;
-                if (it->second->sz > 0 && it->second->side == side)
+                if (it->second->szBuy > 0 && it->second->side == side)
                 {
                     return it;
                 }
@@ -1086,7 +1087,7 @@ std::map<int, book*>::iterator OKExInstrument::findBest(int pr, OKExEnums::side 
                 {
                     return itend;
                 }
-                else if (it->second->sz > 0 && it->second->side == side)
+                else if (it->second->szSell > 0 && it->second->side == side)
                 {
                     return it;
                 }
@@ -1107,11 +1108,15 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
     std::list<msgbook*>::iterator bookit;
     std::list<msgbook*>::iterator bookitend;
     std::map<int, book*>::iterator thisbookend = books->end();
+    std::map<int, book*>::iterator thisbookbegin = books->begin();
     std::map<int, book*>::iterator bk;
     OKExEnums::side orgSide;
     double orgSz;
-    std::map<int, book*>::iterator temp_bid;
-    std::map<int, book*>::iterator temp_ask;
+    std::map<int, book*>::iterator temp_bestbid = bestBid;
+    std::map<int, book*>::iterator temp_bestask = bestAsk;
+    std::map<int, book*>::iterator tempbook;
+
+    bool searchBest = false;
 
     prevBestAsk = bestAsk;
     prevBestBid = bestBid;
@@ -1123,70 +1128,6 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             if ((*it)->ts > ts)
             {
                 ts = (*it)->ts;
-            }
-
-            bookitend = (*it)->bids->end();
-            for (bookit = (*it)->bids->begin(); bookit != bookitend; ++bookit)
-            {
-                if (ctType == OKExEnums::ctType::_INVERSE)
-                {
-                    (*bookit)->sz *= (double)ctVal / (*bookit)->px;
-                }
-                else
-                {
-                    (*bookit)->sz *= (double)ctVal;
-                }
-                bk = books->find((int)((*bookit)->px * priceUnit));
-                if (bk != thisbookend)
-                {
-                    orgSide = bk->second->side;
-                    orgSz = bk->second->sz;
-                    bk->second->updateBook(OKExEnums::side::_BUY, *bookit);
-                    checkExecution(bk, orgSide, orgSz, bk->first);
-                    if (bk->second->side == OKExEnums::side::_BUY)
-                    {
-                        if (bk->second->sz > 0 && bk->first > bestBid->first)
-                        {
-                            bestBid = bk;
-                        }
-                        else if (bk->first == bestBid->first && bk->second->sz == 0)
-                        {
-                            temp_bid = findBest(bk->first, OKExEnums::side::_BUY);
-                            if (temp_bid != books->end())
-                            {
-                                bestBid = temp_bid;
-                            }
-                            else
-                            {
-
-                            }
-                        }
-                    }
-                    else
-                    {
-                        temp_bid = findBest(bestBid->first, OKExEnums::side::_BUY);
-                        if (temp_bid != books->end())
-                        {
-                            bestBid = temp_bid;
-                        }
-                        else
-                        {
-                            //?
-                        }
-                    }
-                    if (orgSide != bk->second->side && bk->first >= bestBid->first)
-                    {
-                        temp_ask = findBest(bestAsk->first, OKExEnums::side::_SELL);
-                        if (temp_ask != books->end())
-                        {
-                            bestAsk = temp_ask;
-                        }
-                    }
-                }
-            }
-            if (bestBid->first - lowestBook < bookDepth / 4)
-            {
-                reshapeBooks();
             }
             bookitend = (*it)->asks->end();
             for (bookit = (*it)->asks->begin(); bookit != bookitend; ++bookit)
@@ -1203,54 +1144,169 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                 if (bk != thisbookend)
                 {
                     orgSide = bk->second->side;
-                    orgSz = bk->second->sz;
+                    orgSz = bk->second->szSell;
                     bk->second->updateBook(OKExEnums::side::_SELL, *bookit);
                     checkExecution(bk, orgSide, orgSz, bk->first);
 
                     if (bk->second->side == OKExEnums::side::_SELL)
                     {
-                        if (bk->second->sz > 0 && bk->first < bestAsk->first)
+                        if (bk->second->sz > 0 && bk->first < temp_bestask->first)
                         {
-                            bestAsk = bk;
+                            temp_bestask = bk;
                         }
-                        else if (bk->first == bestAsk->first && bk->second->sz == 0)
+                        else if (bk->first == temp_bestask->first && bk->second->sz == 0)
                         {
-                            temp_ask = findBest(bk->first, OKExEnums::side::_SELL);
-                            if (temp_ask != books->end())
+                            tempbook = findBest(bk->first, OKExEnums::side::_SELL);
+                            if (tempbook != books->end() && tempbook->first < temp_bestask->first)
                             {
-                                bestAsk = temp_ask;
+                                temp_bestask = tempbook;
                             }
                             else
                             {
-
+                                searchBest = true;
                             }
                         }
                     }
                     else
                     {
-                        temp_ask = findBest(bestAsk->first, OKExEnums::side::_SELL);
-                        if (temp_ask != books->end())
+                        tempbook = findBest(bestAsk->first, OKExEnums::side::_SELL);
+                        if (tempbook != books->end() && tempbook->first < temp_bestask->first)
                         {
-                            bestAsk = temp_ask;
+                            temp_bestask = tempbook;
                         }
                         else
                         {
-                            //?
+                            searchBest = true;
                         }
                     }
                     if (orgSide != bk->second->side && bk->first <= bestAsk->first)
                     {
-                        temp_bid = findBest(bestAsk->first, OKExEnums::side::_BUY);
-                        if (temp_bid != books->end())
+                        tempbook = findBest(bestAsk->first, OKExEnums::side::_BUY);
+                        if (tempbook != books->end() && tempbook->first > temp_bestbid->first)
                         {
-                            bestBid = temp_bid;
+                            temp_bestbid = tempbook;
+                        }
+                        else
+                        {
+                            searchBest = true;
                         }
                     }
                 }
+                else
+                {
+                    break;
+                }
             }
-            if (highestBook - bestAsk->first < bookDepth / 4)
+            bookitend = (*it)->bids->end();
+            for (bookit = (*it)->bids->begin(); bookit != bookitend; ++bookit)
+            {
+                if (ctType == OKExEnums::ctType::_INVERSE)
+                {
+                    (*bookit)->sz *= (double)ctVal / (*bookit)->px;
+                }
+                else
+                {
+                    (*bookit)->sz *= (double)ctVal;
+                }
+                bk = books->find((int)((*bookit)->px * priceUnit));
+                if (bk != thisbookend)
+                {
+                    orgSide = bk->second->side;
+                    orgSz = bk->second->szBuy;
+                    bk->second->updateBook(OKExEnums::side::_BUY, *bookit);
+                    checkExecution(bk, orgSide, orgSz, bk->first);
+                    if (bk->second->side == OKExEnums::side::_BUY)
+                    {
+                        if (bk->second->sz > 0 && bk->first > temp_bestbid->first)
+                        {
+                            temp_bestbid = bk;
+                        }
+                        else if (bk->first == temp_bestbid->first && bk->second->sz == 0)
+                        {
+                            tempbook = findBest(bk->first, OKExEnums::side::_BUY);
+                            if (tempbook != books->end() && tempbook->first > temp_bestbid->first)
+                            {
+                                temp_bestbid = tempbook;
+                            }
+                            else
+                            {
+                                searchBest = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        tempbook = findBest(bestBid->first, OKExEnums::side::_BUY);
+                        if (tempbook != books->end() && tempbook->first > temp_bestbid->first)
+                        {
+                            temp_bestbid = tempbook;
+                        }
+                        else
+                        {
+                            searchBest = true;
+                        }
+                    }
+                    if (orgSide != bk->second->side && bk->first >= bestBid->first)
+                    {
+                        tempbook = findBest(bestBid->first, OKExEnums::side::_SELL);
+                        if (tempbook != books->end() && tempbook->first < temp_bestask->first)
+                        {
+                            temp_bestask = tempbook;
+                        }
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (bestBid->first - lowestBook < bookDepth / 4 || highestBook - bestAsk->first < bookDepth / 4)
             {
                 reshapeBooks();
+            }
+            else if (searchBest)
+            {
+                bestAsk = findBest(books->begin()->first, OKExEnums::side::_SELL);
+                bestBid = findBest((--books->end())->first, OKExEnums::side::_BUY);
+            }
+            else
+            {
+                while (temp_bestask != thisbookend)
+                {
+                    if (temp_bestask->second->sz > 0 && temp_bestask->second->side == OKExEnums::side::_SELL)
+                    {
+                        bestAsk = temp_bestask;
+                        break;
+                    }
+                    else
+                    {
+                        ++temp_bestask;
+                    }
+                }
+                while (temp_bestbid != thisbookend)
+                {
+                    if (temp_bestbid->second->sz > 0 && temp_bestbid->second->side == OKExEnums::side::_BUY)
+                    {
+                        bestBid = temp_bestbid;
+                        break;
+                    }
+                    else if(temp_bestbid == thisbookbegin)
+                    {
+                        temp_bestbid = thisbookend;
+                    }
+                    else
+                    {
+                        ++temp_bestbid;
+                    }
+                }
+                if (temp_bestask == thisbookend)
+                {
+                    bestAsk = thisbookend;
+                }
+                if (temp_bestbid == thisbookend)
+                {
+                    bestBid = thisbookend;
+                }
             }
             (*it)->init();
         }
@@ -1277,12 +1333,14 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
     OKExOrder* ord = nullptr;
     OKExEnums::side ordSide = OKExEnums::side::_NONE;
     dataOrder* exec;
+    double currentSz;
     switch (currentbk->second->side)
     {
     case OKExEnums::side::_BUY:
         ordSide = OKExEnums::side::_SELL;
+        currentSz = currentbk->second->szBuy;
         //Check sell Orders from org best buy to the current bk
-        if (currentbk->first > prevBestBid->first)
+        if (currentbk->first > prevBestBid->first && currentSz > orgSz)
         {
             for (tempbk = prevBestBid; tempbk != currentbk; ++tempbk)
             {
@@ -1293,7 +1351,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                     {
                         msg = "OKExInstrument 1294";
                         exec = execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
-                        updateOrders(exec);
+                        //updateOrders(exec);
                     }
                 }
             }
@@ -1301,8 +1359,9 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
         break;
     case OKExEnums::side::_SELL:
         ordSide = OKExEnums::side::_BUY;
+        currentSz = currentbk->second->szSell;
         //Check buy orders from org best sell to the current bk
-        if (currentbk->first < prevBestAsk->first)
+        if (currentbk->first < prevBestAsk->first && currentSz > orgSz)
         {
             for (tempbk = prevBestAsk; tempbk != currentbk; --tempbk)
             {
@@ -1313,7 +1372,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                     {
                         msg = "OKExInstrument 1313";
                         exec = execute(ts, instId, ordit->second, ordit->second->openSz, ordit->second->px, msg);
-                        updateOrders(exec);
+                        //updateOrders(exec);
                     }
                 }
             }
@@ -1323,11 +1382,11 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
         break;
     }
 
-    if (orgSide == currentbk->second->side)
+    if (orgSide == currentbk->second->side && orgSide != OKExEnums::side::_NONE)
     {
-        if (currentbk->second->sz - orgSz < 0)
+        if (currentSz - orgSz < 0)
         {
-            double deductingSz = orgSz - currentbk->second->sz;
+            double deductingSz = orgSz - currentSz;
             if (currentbk->second->recentExec >= deductingSz)
             {
                 currentbk->second->recentExec -= deductingSz;
@@ -1359,7 +1418,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                 }
             }
         }
-        else if (currentbk->second->sz - orgSz > 0)
+        else if (currentSz - orgSz > 0)
         {
             orditend = currentbk->second->liveOrders->end();
             for (ordit = currentbk->second->liveOrders->begin(); ordit != orditend; ++ordit)
@@ -1369,7 +1428,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                     ordit->second->priorQuantity = 0;
                 }
             }
-            double execSzAll = currentbk->second->sz - orgSz;
+            double execSzAll = currentSz - orgSz;
             while (execSzAll > 0)
             {
                 ord = currentbk->second->getTopOrder(ordSide);
@@ -1384,7 +1443,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                     ord->priorQuantity = 0;
                     msg = "OKExInstrument 1382";
                     exec = execute(ts, instId, ord, execSz, currentbk->second->px, msg);
-                    updateOrders(exec);
+                    //updateOrders(exec);
                     execSzAll -= execSz;
                 }
                 else
@@ -1418,7 +1477,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                 dataOrder* exec;
                 ord->priorQuantity = 0;
                 exec = execute(ts, instId, ord, execSz, currentbk->second->px, msg);
-                updateOrders(exec);
+                //updateOrders(exec);
                 execSzAll -= execSz;
             }
             else
@@ -1427,7 +1486,7 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
             }
         }
     }
-
+    checkWaitingExeQueue();
 }
 
 bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
@@ -1459,15 +1518,11 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
     //Call book->updateOrder if it's an ack of the order
     //Call book->executeOrder if it's an execution.
     //Update Variables on Instrument class and Position Class.
-    if (dtord->clOrdId == "ETH-USDT2022070100229260")
-    {
-        bool stop = true;
-        stop = true;
-    }
     std::map<std::string, OKExOrder*>::iterator ordit = liveOrdList->find(dtord->clOrdId);
     std::map<int, book*>::iterator bk;
     std::map<int,book*>::iterator newbk;
     OKExOrder* neword;
+    double orgSz;
     if (ordit != liveOrdList->end())
     {
         bk = books->find((int)(ordit->second->px * priceUnit));
@@ -1509,25 +1564,6 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                     }
                     break;
                 }
-                //bk->executeOrder(dtord);
-                /*if (bk->executeOrder(dtord))
-                {
-                    bool desired = true;
-                    bool expected = false;
-                    while (true)
-                    {
-                        if (lckLiveOrdList.compare_exchange_weak(expected, desired))
-                        {
-                            liveOrdList->erase(ordit->first);
-                            lckLiveOrdList = false;
-                            break;
-                        }
-                        else
-                        {
-                            expected = false;
-                        }
-                    }
-                }*/
                 if (dtord->side == OKExEnums::side::_BUY)
                 {
                     ++tradedCntBuy;
@@ -1554,6 +1590,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                         ordit->second->ordId = dtord->ordId;
                         ordit->second->status = OKExEnums::orderState::_LIVE;
                         ordit->second->live = true;
+                        ordit->second->priorQuantity = bk->second->sz;
                         switch (ordit->second->side)
                         {
                         case OKExEnums::side::_BUY:
@@ -1568,12 +1605,12 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                         break;
                     case OKExEnums::orderState::_WAIT_AMD:
                         ordit->second->ordId = dtord->ordId;
-                        ordit->second->sz = ordit->second->newSz;
-                        ordit->second->openSz = ordit->second->sz - ordit->second->execSz;
+                        ordit->second->openSz = ordit->second->newSz - ordit->second->execSz;
                         if (ordit->second->openSz < lotSz)
                         {
                             ordit->second->openSz = 0;
                             ordit->second->live = false;
+                            ordit->second->sz = ordit->second->execSz;
                             if (ordit->second->execSz > 0)
                             {
                                 ordit->second->status = OKExEnums::orderState::_FILLED;
@@ -1595,6 +1632,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                             }
                             if (ordit->second->px != ordit->second->newPx)
                             {
+                                ordit->second->sz = ordit->second->newSz;
                                 ordit->second->px = ordit->second->newPx;
                                 output = ordit->second;
                                 bk->second->removeOrder(ordit->first);
@@ -1602,7 +1640,13 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                                 if (newbk != books->end())
                                 {
                                     newbk->second->addOrder(ordit->second);
+                                    ordit->second->priorQuantity = newbk->second->sz;
                                 }
+                            }
+                            else if (ordit->second->newSz > ordit->second->sz)
+                            {
+                                ordit->second->sz = ordit->second->newSz;
+                                ordit->second->priorQuantity = bk->second->sz;
                             }
                         }
                         break;
@@ -1841,4 +1885,14 @@ void OKExInstrument::endOfDayReset(void)
     intradayExeAmtSell = 0;
 
     //Don't initialize factors
+}
+
+void OKExInstrument::checkWaitingExeQueue(void)
+{
+    dataOrder* exec;
+    while (waitingExeQueue->Count() > 0)
+    {
+        exec = waitingExeQueue->Dequeue();
+        updateOrders(exec);
+    }
 }

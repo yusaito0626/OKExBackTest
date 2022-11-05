@@ -300,6 +300,8 @@ void VirtualOMS::checkWaitingOrdQueue(long long _tm)
 	}
 }
 
+
+
 dataOrder* VirtualOMS::createAckTicket(long long _tm, ordTicket* tkt)
 {
 	dataOrder* dtord = execPool->pop();
@@ -471,6 +473,7 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 	default:
 		break;
 	}
+	ins->checkWaitingExeQueue();
 	return exec;
 }
 dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)
@@ -512,6 +515,7 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 		exec->state = OKExEnums::orderState::_FILLED;
 	}
 	ackQueue->Enqueue(exec);
+	ins->waitingExeQueue->Enqueue(exec);
 	return exec;
 }
 

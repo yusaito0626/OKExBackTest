@@ -143,6 +143,7 @@ public:
 	std::map<std::string, OKExOrder*>* ordList;
 	std::map<std::string, OKExOrder*>* liveOrdList;
 	std::atomic<bool> lckLiveOrdList;
+	LockFreeQueue::SISOQueue<dataOrder*>* waitingExeQueue;
 
 	int intradayOrdBuy;
 	int intradayOrdSell;
@@ -250,6 +251,7 @@ public:
 	void addNewOrder(OKExOrder* ord);
 	double getPriorQuantity(OKExEnums::side side, double px);
 	void calcMid(void);
+	void checkWaitingExeQueue(void);
 
 	std::string outputDailyResult(void);
 	void endOfDayReset(void);

@@ -145,6 +145,7 @@
     <ClInclude Include="LockFreeQueue.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="ring.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="calendar.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="LockFreeQueue.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="ring.cpp" />
+    <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

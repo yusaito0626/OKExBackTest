@@ -6,3 +6,4 @@
 #include <atomic>
 #include <fstream>
 #include <sstream>
+#include <Windows.h>

@@ -31,6 +31,7 @@ public:
 	long long buyExecQty;
 
 	void initialize(std::map<std::string, OKExInstrument*>* _insList, std::string _outputFilePath);
+	void setNewDate(void);
 
 	//Put same parameters as live
 	OKExOrder* sendNewOrder(long long _tm,std::string instId,OKExEnums::tradeMode tdMode,OKExEnums::side side, double px, double sz,OKExEnums::ordType ordtype, std::string& msg);
@@ -56,6 +57,8 @@ public:
 	LockFreeQueue::SISOQueue<ordTicket*>* waitingOrderQueue;
 	LockFreeQueue::SISOQueue<ordTicket*>* ordTktQueue;
 	LockFreeQueue::SISOQueue<dataOrder*>* ackQueue;
+
+	boost::function<dataOrder* (long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)> exeFunc;
 
 	static VirtualOMS* getInstance(void)
 	{

@@ -47,14 +47,18 @@ std::string VirtualOMS::getOrdId(std::string instId)
 void VirtualOMS::initialize(std::map<std::string, OKExInstrument*>* _insList, std::string _outputFilePath)
 {
 	insList = _insList;
+	exeFunc = boost::bind(&VirtualOMS::execute, this, _1, _2, _3, _4, _5, _6);
+	outputFilePath = _outputFilePath;
+}
+
+void VirtualOMS::setNewDate(void)
+{
 	std::map<std::string, OKExInstrument*>::iterator it;
 	std::map<std::string, OKExInstrument*>::iterator itend = insList->end();
-	boost::function<dataOrder* (long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)> exeFunc = boost::bind(&VirtualOMS::execute, this, _1, _2, _3, _4, _5, _6);
 	for (it = insList->begin(); it != itend; ++it)
 	{
 		it->second->execute = exeFunc;
 	}
-	outputFilePath = _outputFilePath;
 }
 
 OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums::tradeMode tdMode, OKExEnums::side side, double px, double sz, OKExEnums::ordType ordtype, std::string& msg)

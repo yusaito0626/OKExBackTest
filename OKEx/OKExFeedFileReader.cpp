@@ -45,15 +45,24 @@ std::map<std::string, OKExInstrument*>* OKExFeedFileReader::initializeInsList(st
 		}
 		else
 		{
+			std::map<std::string, OKExInstrument*> tempInsList;
+			std::map<std::string, OKExInstrument*>::iterator it;
+			std::map<std::string, OKExInstrument*>::iterator itend = insList->end();
+			for (it = insList->begin(); it != itend; ++it)
+			{
+				tempInsList.emplace(it->first, it->second);
+			}
+			insList->clear();
 			while (std::getline(fs, line))
 			{
 				std::map<std::string, std::string> mp;
 				json::deserialize(line, mp);
 				OKExInstrument* ins;
-				if (insList->find(mp["instId"]) != insList->end())
+				if (tempInsList.find(mp["instId"]) != tempInsList.end())
 				{
-					ins = insList->at(mp["instId"]);
+					ins = tempInsList.at(mp["instId"]);
 					ins->setInstrumentData(mp);
+					insList->emplace(ins->instId, ins);
 				}
 				else
 				{

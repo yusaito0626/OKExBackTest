@@ -54,7 +54,7 @@ public:
     bool ProcedureStarted;
 
     void InitializeObjects(void);
-    void SetNewDate(int date);
+    void SetNewDate(Date dt);
     void EndOfDayReset(void);
 
     void InitilizeInsBox(void);

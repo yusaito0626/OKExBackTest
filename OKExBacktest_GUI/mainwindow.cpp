@@ -440,9 +440,10 @@ void MainWindow::InitializeObjects(void)
     voms->initialize(insList, GlobalVariables::OKExBacktest_GUI::outputFilePath);
 }
 
-void MainWindow::SetNewDate(int date)
+void MainWindow::SetNewDate(Date dt)
 {
-
+    feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\OKExMaster_" + dt.strday + ".txt");
+    voms->setNewDate();
 }
 
 
@@ -481,6 +482,7 @@ void MainWindow::test(void)
     while (it->first <= enddate)
     {
         GlobalVariables::OKEx::today = it->second;
+        SetNewDate(GlobalVariables::OKEx::today);
         feedFile = GlobalVariables::OKExBacktest_GUI::feedFilePath + "\\OKExFeed_" + it->second.strday + ".log.gz";
         feedReader->readFeedFile(feedFile);
         EndOfDayReset();

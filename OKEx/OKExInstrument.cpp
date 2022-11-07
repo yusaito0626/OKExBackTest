@@ -414,6 +414,7 @@ void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
     {
         tickSz = stod(mp["tickSz"]);
         priceUnit = (int)(1 / tickSz);
+        displayDigits = (int)floor(log10(priceUnit));
     }
 }
 
@@ -1120,6 +1121,14 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
 
     prevBestAsk = bestAsk;
     prevBestBid = bestBid;
+    if (prevBestAsk == thisbookend)
+    {
+        --prevBestAsk;
+    }
+    if (prevBestBid == thisbookend)
+    {
+        prevBestBid = thisbookbegin;
+    }
 
     for (it = msg->books->begin(); it != itend; ++it)
     {
@@ -1556,7 +1565,6 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                         ordit->second->openSz = 0;
                         ordit->second->execSz = ordit->second->sz;
                         ordit->second->status = OKExEnums::orderState::_FILLED;
-                        ordit->second->live = false;
                     }
                     else
                     {
@@ -1609,7 +1617,6 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                         if (ordit->second->openSz < lotSz)
                         {
                             ordit->second->openSz = 0;
-                            ordit->second->live = false;
                             ordit->second->sz = ordit->second->execSz;
                             if (ordit->second->execSz > 0)
                             {
@@ -1654,7 +1661,6 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                         ordit->second->ordId = dtord->ordId;
                         ordit->second->sz = ordit->second->execSz;
                         ordit->second->openSz = 0;
-                        ordit->second->live = false;
                         if (ordit->second->execSz > 0)
                         {
                             ordit->second->status = OKExEnums::orderState::_FILLED;
@@ -1678,7 +1684,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
             }
             if ((ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED))
             {
-                if (ordit->second->status == OKExEnums::orderState::_FILLED)
+                if (ordit->second->status == OKExEnums::orderState::_FILLED && ordit->second->live)
                 {
                     switch (ordit->second->side)
                     {
@@ -1693,6 +1699,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                     }
                 }
 
+                ordit->second->live = false;
                 bk->second->removeOrder(ordit->first);
                 bool desired = true;
                 bool expected = false;

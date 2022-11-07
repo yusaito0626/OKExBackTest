@@ -241,10 +241,10 @@ void MainWindow::SetInstrunemt(std::string instId)
 void MainWindow::UpdateInsInfo(OKExInstrument* ins)
 {
     //Price
-    ui->lblOpen->setText(QString("%L1").arg(ins->open, 0, 'f', 1));
-    ui->lblLow->setText(QString("%L1").arg(ins->low, 0, 'f', 1));
-    ui->lblHigh->setText(QString("%L1").arg(ins->high, 0, 'f', 1));
-    ui->lblLast->setText(QString("%L1").arg(ins->last, 0, 'f', 1));
+    ui->lblOpen->setText(QString("%L1").arg(ins->open, 0, 'f', ins->displayDigits));
+    ui->lblLow->setText(QString("%L1").arg(ins->low, 0, 'f', ins->displayDigits));
+    ui->lblHigh->setText(QString("%L1").arg(ins->high, 0, 'f', ins->displayDigits));
+    ui->lblLast->setText(QString("%L1").arg(ins->last, 0, 'f', ins->displayDigits));
 
 
     //Trade Summary
@@ -252,19 +252,19 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
     ui->lblBuyQty->setText(QString("%L1").arg(ins->tradedQtyBuy, 0, 'f', 5));
     if (ins->tradedQtySell > 0)
     {
-        ui->lblSellPr->setText(QString("%L1").arg(ins->tradedAmtSell / ins->tradedQtySell, 0, 'f', 2));
+        ui->lblSellPr->setText(QString("%L1").arg(ins->tradedAmtSell / ins->tradedQtySell, 0, 'f', ins->displayDigits + 1));
     }
     else
     {
-        ui->lblSellPr->setText(QString("%L1").arg(0, 0, 'f', 2));
+        ui->lblSellPr->setText(QString("%L1").arg(0, 0, 'f', ins->displayDigits + 1));
     }
     if (ins->tradedQtyBuy > 0)
     {
-        ui->lblBuyPr->setText(QString("%L1").arg(ins->tradedAmtBuy / ins->tradedQtyBuy, 0, 'f', 2));
+        ui->lblBuyPr->setText(QString("%L1").arg(ins->tradedAmtBuy / ins->tradedQtyBuy, 0, 'f', ins->displayDigits + 1));
     }
     else
     {
-        ui->lblBuyPr->setText(QString("%L1").arg(0, 0, 'f', 2));
+        ui->lblBuyPr->setText(QString("%L1").arg(0, 0, 'f', ins->displayDigits + 1));
     }
     
     
@@ -294,7 +294,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
             {
                 if (insbkit->second->sz > 0)
                 {
-                    it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit,0,'f',1));
+                    it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit,0,'f', ins->displayDigits));
                     it->second->setText(QString("%L1").arg(insbkit->second->sz,0,'f',5));
                     ++insbkit;
                     break;
@@ -328,7 +328,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
         {
             if (insbkit->second->sz > 0)
             {
-                it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
+                it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', ins->displayDigits));
                 it->second->setText(QString("%L1").arg(insbkit->second->sz, 0, 'f', 5));
                 insbkit = insbkend;
             }
@@ -345,7 +345,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
             {
                 if (insbkit->second->sz > 0)
                 {
-                    it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
+                    it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', ins->displayDigits));
                     it->second->setText(QString("%L1").arg(insbkit->second->sz, 0, 'f', 5));
                     --insbkit;
                     break;
@@ -357,7 +357,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                     {
                         if (insbkit->second->sz > 0)
                         {
-                            it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', 1));
+                            it->first->setText(QString("%L1").arg((double)insbkit->first / ins->priceUnit, 0, 'f', ins->displayDigits));
                             it->second->setText(QString("%L1").arg(insbkit->second->sz, 0, 'f', 5));
                             insbkit = insbkend;
                         }
@@ -393,7 +393,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                 ui->tableOrders->item(i, 0)->setText(QString::fromStdString(it->second->baseOrdId));
                 ui->tableOrders->item(i, 1)->setText(QString::number((int)it->second->status));
                 ui->tableOrders->item(i, 2)->setText(QString::number((int)it->second->side));
-                ui->tableOrders->item(i, 3)->setText(QString("%L1").arg(it->second->px, 0, 'f', 1));
+                ui->tableOrders->item(i, 3)->setText(QString("%L1").arg(it->second->px, 0, 'f', ins->displayDigits));
                 ui->tableOrders->item(i, 4)->setText(QString("%L1").arg(it->second->sz, 0, 'f', 5));
                 ui->tableOrders->item(i, 5)->setText(QString("%L1").arg(it->second->execSz, 0, 'f', 5));
                 ++i;

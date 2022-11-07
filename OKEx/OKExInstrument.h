@@ -119,6 +119,7 @@ public:
 	OKExEnums::insState state;
 	double tickSz;
 	int priceUnit;
+	int displayDigits;
 
 	bool isTrading;
 

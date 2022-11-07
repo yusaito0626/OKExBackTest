@@ -929,8 +929,8 @@ bool OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
     {
         book* bk = new book();
         bk->init();
-        bk->px = temppr;
-        books->emplace(bk->px, bk);
+        bk->px = (double)temppr / priceUnit;
+        books->emplace(temppr, bk);
         temppr += tick;
     }
 
@@ -953,7 +953,7 @@ bool OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
             {
                 bk = new book();
             }
-            bk->px = bidpr;
+            bk->px = (double)bidpr / priceUnit;
             books->emplace(bidpr, bk);
         }
         if (asksit != asksitend)
@@ -971,7 +971,7 @@ bool OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
             {
                 bk = new book();
             }
-            bk->px = askpr;
+            bk->px = (double)askpr / priceUnit;
             books->emplace(askpr, bk);
         }
         highestBook = askpr;

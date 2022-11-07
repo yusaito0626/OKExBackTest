@@ -179,24 +179,39 @@ bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
 		{
 			if (msg->args->at("action") == "snapshot")
 			{
-				ins->second->initializeBooks(msg, 1000);
-				ins->second->calcMid();
+				ins->second->isTrading = ins->second->initializeBooks(msg, 1000);
+				if (ins->second->isTrading)
+				{
+					ins->second->calcMid();
+				}
+				else
+				{
+					logWriter->addLog(Enums::logType::_WARNING, "Invalid Snapshot instId:" + ins->first);
+					logWriter->addLog(Enums::logType::_WARNING, "Couldn't Start Trading");
+				}
+				
 			}
 			else if (msg->args->at("action") == "update")
 			{
-				blOptimize = ins->second->updateBooks(msg);
-				ins->second->calcMid();
-				ts = ins->second->ts;
-				voms->checkWaitingOrdQueue(ts);
+				if (ins->second->isTrading)
+				{
+					blOptimize = ins->second->updateBooks(msg);
+					ins->second->calcMid();
+					ts = ins->second->ts;
+					voms->checkWaitingOrdQueue(ts);
+				}
 			}
 		}
 		else if (msg->args->at("channel") == "trades")
 		{
-			ins->second->updateTrade(msg);
-			ins->second->calcMid();
-			ts = ins->second->ts;
-			voms->checkWaitingOrdQueue(ts);
-			blOptimize = true;
+			if (ins->second->isTrading)
+			{
+				ins->second->updateTrade(msg);
+				ins->second->calcMid();
+				ts = ins->second->ts;
+				voms->checkWaitingOrdQueue(ts);
+				blOptimize = true;
+			}
 		}
 	}
 	return blOptimize;

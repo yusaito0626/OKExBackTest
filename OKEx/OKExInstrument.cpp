@@ -781,10 +781,11 @@ void OKExInstrument::updateTrade(OKExMktMsg* msg)
     }
 }
 
-void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
+bool OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
 {
     PoolingStack::PoolingStack<book*> bookPool;
     bookDepth = depth;
+    int tick = (int)(tickSz * priceUnit);
 
     if (books->size() > 0)
     {
@@ -904,18 +905,20 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
     else if (tempbestask > 0)
     {
         mid = tempbestask;
+        tempbestbid = tempbestask - tick;
     }
     else if (tempbestbid > 0)
     {
         mid = tempbestbid;
+        tempbestask = tempbestbid + tick;
     }
     else
     {
         mid = 0;
+        return false;
     }
 
     int i = 0;
-    int tick = (int)(tickSz * priceUnit);
     int askpr = tempbestask;
     int bidpr = tempbestbid;
     bidsitend = bids.end();
@@ -1007,10 +1010,28 @@ void OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
             }
         }
     }
+    return true;
 }
 
-void OKExInstrument::reshapeBooks(void)
+bool OKExInstrument::reshapeBooks(void)
 {
+    if (bestBid == books->end() && bestAsk == books->end())
+    {
+        bestBid = findBest((--books->end())->first,OKExEnums::side::_BUY);
+        bestAsk = findBest(books->begin()->first, OKExEnums::side::_SELL);
+        if (bestBid == books->end() && bestAsk == books->end())
+        {
+            return false;
+        }
+    }
+    if (bestBid == books->end())
+    {
+        bestBid = books->begin();
+    }
+    if (bestAsk == books->end())
+    {
+        bestAsk = --books->end();
+    }
     int bidDepth = bestBid->first - lowestBook;
     int askDepth = highestBook - bestAsk->first;
 
@@ -1055,6 +1076,7 @@ void OKExInstrument::reshapeBooks(void)
             askDepth = highestBook - bestAsk->first;
         }
     }
+    return true;
 }
 
 std::map<int, book*>::iterator OKExInstrument::findBest(int pr, OKExEnums::side side)
@@ -1178,7 +1200,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                     }
                     else
                     {
-                        tempbook = findBest(bestAsk->first, OKExEnums::side::_SELL);
+                        tempbook = findBest(prevBestAsk->first, OKExEnums::side::_SELL);
                         if (tempbook != books->end() && tempbook->first < temp_bestask->first)
                         {
                             temp_bestask = tempbook;
@@ -1190,7 +1212,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                     }
                     if (orgSide != bk->second->side && bk->first <= bestAsk->first)
                     {
-                        tempbook = findBest(bestAsk->first, OKExEnums::side::_BUY);
+                        tempbook = findBest(prevBestAsk->first, OKExEnums::side::_BUY);
                         if (tempbook != books->end() && tempbook->first > temp_bestbid->first)
                         {
                             temp_bestbid = tempbook;
@@ -1245,7 +1267,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                     }
                     else
                     {
-                        tempbook = findBest(bestBid->first, OKExEnums::side::_BUY);
+                        tempbook = findBest(prevBestBid->first, OKExEnums::side::_BUY);
                         if (tempbook != books->end() && tempbook->first > temp_bestbid->first)
                         {
                             temp_bestbid = tempbook;
@@ -1257,7 +1279,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                     }
                     if (orgSide != bk->second->side && bk->first >= bestBid->first)
                     {
-                        tempbook = findBest(bestBid->first, OKExEnums::side::_SELL);
+                        tempbook = findBest(prevBestBid->first, OKExEnums::side::_SELL);
                         if (tempbook != books->end() && tempbook->first < temp_bestask->first)
                         {
                             temp_bestask = tempbook;
@@ -1271,7 +1293,12 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             }
             if (bestBid->first - lowestBook < bookDepth / 4 || highestBook - bestAsk->first < bookDepth / 4)
             {
-                reshapeBooks();
+                isTrading = reshapeBooks();
+                if (!isTrading)
+                {
+                    logWriter->addLog(Enums::logType::_WARNING, "Failed to reshape books. instId:" + instId);
+                    logWriter->addLog(Enums::logType::_WARNING, "Trade Stopped");
+                }
             }
             else if (searchBest)
             {

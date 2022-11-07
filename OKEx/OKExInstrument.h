@@ -6,6 +6,7 @@
 
 #include "../utils/ring.h"
 #include "../utils/LockFreeQueue.h"
+#include "../utils/Logging.h"
 
 class book
 {
@@ -242,10 +243,10 @@ public:
 	void setInstrumentData(std::map<std::string, std::string> mp);
 	void setParams(std::map<std::string, std::string> params);
 	void updateTrade(OKExMktMsg* msg);
-	void initializeBooks(OKExMktMsg* msg, int depth);
+	bool initializeBooks(OKExMktMsg* msg, int depth);
 	bool updateBooks(OKExMktMsg* msg);
 	void checkExecution(std::map<int,book*>::iterator currentbk,OKExEnums::side orgSide, double orgSz, int pr);
-	void reshapeBooks(void);
+	bool reshapeBooks(void);
 	std::map<int, book*>::iterator findBest(int pr, OKExEnums::side side);
 	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);

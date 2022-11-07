@@ -57,7 +57,6 @@ std::string utils::epochToStr(unsigned int time)
 	std::string hh;
 	std::string mm;
 	std::string ss;
-	std::string yyyy;
 	yyyy = std::to_string(_tm.tm_year + 1900);
 	if (_tm.tm_mon > 8)
 	{

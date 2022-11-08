@@ -12,8 +12,10 @@ struct Date
 	bool LDHoliday;
 	bool NYHoliday;
 	bool SummerTime;
+	int index;
 
 	bool operator==(const Date& obj) { return this->iday == obj.iday; };
+	int operator-(const Date& obj) { return this->index - obj.index; };
 };
 
 class Calendar
@@ -25,8 +27,8 @@ class Calendar
 public:
 	void Initialize(std::string CalendarFile);
 	std::map<int, Date>::iterator GetDay(int base, int offset);
+	std::map<int, Date>::iterator GetDay(std::string strday);
 	std::map<int, Date>::iterator end(void);
-	int GetBusinessDay(int base, int offset);
 
 	std::map<int, Date>::iterator CurrentDate;
 

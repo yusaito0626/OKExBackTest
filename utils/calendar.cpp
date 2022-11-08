@@ -46,6 +46,9 @@ void Calendar::Initialize(std::string CalendarFile)
 			case 7:
 				dt.SummerTime = stoi(elem);
 				break;
+			case 8:
+				dt.index= stoi(elem);
+				break;
 			default:
 				break;
 			}
@@ -94,6 +97,13 @@ std::map<int, Date>::iterator Calendar::GetDay(int base, int offset)
 			return it;
 		}
 	}
+}
+
+std::map<int, Date>::iterator Calendar::GetDay(std::string strday)
+{
+	std::string yyyymmdd = strday;
+	yyyymmdd.erase(std::remove(yyyymmdd.begin(), yyyymmdd.end(), '-'), yyyymmdd.end());
+	return cld->find(stoi(yyyymmdd));
 }
 
 std::map<int, Date>::iterator Calendar::end(void)

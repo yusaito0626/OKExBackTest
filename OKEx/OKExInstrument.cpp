@@ -518,8 +518,8 @@ void position::init(void)
 OKExInstrument::OKExInstrument()
 {
     //test
-    bidOrd = nullptr;
-    askOrd = nullptr;
+    //bidOrd = nullptr;
+    //askOrd = nullptr;
 
     instId = "";
     instType = OKExEnums::instType::_NONE;

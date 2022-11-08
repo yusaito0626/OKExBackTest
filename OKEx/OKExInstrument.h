@@ -234,8 +234,17 @@ public:
 	double skewWgtExecBid;
 
 	//Optimizer
+	int remainingDays;
+	double targetRate;
+	double targetUnwindDiff;
+	double currentPosDiff;
+	double unwindingRatio; //percentage of currentPosDiff
+	double ulyPr;
+	//Place both bid ans ask order when opening position is 0.
+	//Once you got the position, bid or ask ord + unwindingPos;
 	OKExOrder* bidOrd;
 	OKExOrder* askOrd;
+	OKExOrder* unwindOrd;
 
 	OKExInstrument();
 	~OKExInstrument();

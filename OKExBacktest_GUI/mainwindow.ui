@@ -1841,22 +1841,6 @@
        </property>
       </widget>
      </widget>
-     <widget class="QLabel" name="lblUpdateTime">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>150</x>
-        <y>45</y>
-        <width>81</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Time</string>
-      </property>
-     </widget>
      <widget class="QGroupBox" name="groupBox_3">
       <property name="geometry">
        <rect>
@@ -1908,7 +1892,7 @@
       <widget class="QLabel" name="label_42">
        <property name="geometry">
         <rect>
-         <x>110</x>
+         <x>90</x>
          <y>40</y>
          <width>50</width>
          <height>12</height>
@@ -1926,7 +1910,7 @@
       <widget class="QLabel" name="label_43">
        <property name="geometry">
         <rect>
-         <x>220</x>
+         <x>200</x>
          <y>40</y>
          <width>50</width>
          <height>12</height>
@@ -1944,7 +1928,7 @@
       <widget class="QLabel" name="lblSellQty">
        <property name="geometry">
         <rect>
-         <x>60</x>
+         <x>40</x>
          <y>65</y>
          <width>101</width>
          <height>20</height>
@@ -1965,7 +1949,7 @@
       <widget class="QLabel" name="lblBuyQty">
        <property name="geometry">
         <rect>
-         <x>60</x>
+         <x>40</x>
          <y>105</y>
          <width>101</width>
          <height>20</height>
@@ -1986,7 +1970,7 @@
       <widget class="QLabel" name="lblSellPr">
        <property name="geometry">
         <rect>
-         <x>170</x>
+         <x>150</x>
          <y>65</y>
          <width>101</width>
          <height>20</height>
@@ -2007,7 +1991,7 @@
       <widget class="QLabel" name="lblBuyPr">
        <property name="geometry">
         <rect>
-         <x>170</x>
+         <x>150</x>
          <y>105</y>
          <width>101</width>
          <height>20</height>
@@ -2020,6 +2004,87 @@
        </property>
        <property name="text">
         <string>BuyPr</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="lblNetPos">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>80</y>
+         <width>101</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Net pos</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_44">
+       <property name="geometry">
+        <rect>
+         <x>280</x>
+         <y>60</y>
+         <width>81</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Net Position</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_47">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>110</y>
+         <width>50</width>
+         <height>12</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Prev Day</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="lblPrevDayPos">
+       <property name="geometry">
+        <rect>
+         <x>310</x>
+         <y>105</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>prev day</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

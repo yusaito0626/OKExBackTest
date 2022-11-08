@@ -266,6 +266,8 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
     {
         ui->lblBuyPr->setText(QString("%L1").arg(0, 0, 'f', ins->displayDigits + 1));
     }
+    ui->lblNetPos->setText(QString("%L1").arg(ins->netPosition, 0, 'f', 5));
+    ui->lblPrevDayPos->setText(QString("%L1").arg(ins->prevNetPos, 0, 'f', 5));
     
     
     //PL

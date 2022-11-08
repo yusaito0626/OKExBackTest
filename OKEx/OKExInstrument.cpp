@@ -1605,6 +1605,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                     tradedQtyBuy += dtord->fillSz;
                     tradedAmtBuy += dtord->fillSz * dtord->fillPx;
                     intradayExeAmtBuy += dtord->fillSz * dtord->fillPx;
+                    netPosition += dtord->fillSz;
                 }
                 else if (dtord->side == OKExEnums::side::_SELL)
                 {
@@ -1612,6 +1613,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                     tradedQtySell += dtord->fillSz;
                     tradedAmtSell += dtord->fillSz * dtord->fillPx;
                     intradayExeAmtSell += dtord->fillSz * dtord->fillPx;
+                    netPosition -= dtord->fillSz;
                 }
             }
             else

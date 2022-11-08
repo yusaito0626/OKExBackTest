@@ -104,7 +104,7 @@ public:
 	int category;
 	int ctMulti;
 	OKExEnums::ctType ctType;
-	int ctVal;
+	double ctVal;
 	std::string ctValCcy;
 	long long expTime;
 	int lever;

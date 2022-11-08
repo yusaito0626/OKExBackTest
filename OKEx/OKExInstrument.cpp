@@ -530,7 +530,7 @@ OKExInstrument::OKExInstrument()
     category = 0;
     ctMulti = 0;
     ctType = OKExEnums::ctType::_NONE;
-    ctVal = 0;
+    ctVal = 1.0;
     ctValCcy = "";
     expTime = 0;
     lever = 0;
@@ -1291,7 +1291,7 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
                     break;
                 }
             }
-            if (bestBid->first - lowestBook < bookDepth / 4 || highestBook - bestAsk->first < bookDepth / 4)
+            if (prevBestBid->first - lowestBook < bookDepth / 4 || highestBook - prevBestAsk->first < bookDepth / 4)
             {
                 isTrading = reshapeBooks();
                 if (!isTrading)

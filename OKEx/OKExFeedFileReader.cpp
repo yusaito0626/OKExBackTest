@@ -179,9 +179,14 @@ bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
 		{
 			if (msg->args->at("action") == "snapshot")
 			{
+				bool prevIsTrading = ins->second->isTrading;
 				ins->second->isTrading = ins->second->initializeBooks(msg, 1000);
 				if (ins->second->isTrading)
 				{
+					if (!prevIsTrading)
+					{
+						logWriter->addLog(Enums::logType::_INFO, "Read snapshot message successfully. instId:" + ins->first);
+					}
 					ins->second->calcMid();
 				}
 				else

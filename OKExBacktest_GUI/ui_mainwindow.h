@@ -211,7 +211,7 @@ public:
         groupBox->setGeometry(QRect(490, 120, 161, 171));
         LogTextEdit = new QPlainTextEdit(tabMain);
         LogTextEdit->setObjectName("LogTextEdit");
-        LogTextEdit->setGeometry(QRect(0, 299, 660, 281));
+        LogTextEdit->setGeometry(QRect(0, 300, 660, 241));
         QFont font1;
         font1.setFamilies({QString::fromUtf8("Calibri")});
         font1.setPointSize(8);

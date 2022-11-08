@@ -501,6 +501,14 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 		return nullptr;
 	}
 	dataOrder* exec = execPool->pop();
+	if (!exec)
+	{
+		for (int i = 0; i < EXE_POOL_SIZE; ++i)
+		{
+			execPool->push(new dataOrder());
+		}
+		exec = execPool->pop();
+	}
 	exec->tktType = OKExEnums::ticketType::_EXEC;
 	exec->clOrdId = ord->baseOrdId;
 	exec->ordId = getOrdId(instId);

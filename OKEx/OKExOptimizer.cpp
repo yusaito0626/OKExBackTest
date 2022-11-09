@@ -109,7 +109,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 	{
 		if(ins->swapBidPr > 0)//Buy Order
 		{
-			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate - ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			double sz = ins->unitSz;
 			if (ins->netPosition + sz > ins->maxHoldingPos)
 			{
@@ -158,7 +158,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		}
 		if (ins->swapAskPr > 0)//Sell Order
 		{
-			double targetPr = ceil(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double targetPr = ceil(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate + ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			double sz = ins->unitSz;
 			if (ins->netPosition + sz > ins->maxHoldingPos)
 			{
@@ -210,7 +210,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 	{
 		if (ins->swapBidPr > 0)//Open
 		{
-			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate - ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			double sz = ins->unitSz;
 			if (ins->netPosition + sz > ins->maxHoldingPos)
 			{
@@ -260,7 +260,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		if (ins->swapAskPr > 0)//Unwind
 		{
 			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
-			double targetPr = ceil(ins->swapAskPr + ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
+			double targetPr = ceil(ins->swapAskPr - ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
 			double sz = ins->unitSz;
 			if (sz > ins->netPosition)//Net Position is positive.
 			{
@@ -308,7 +308,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 	{
 		if (ins->swapAskPr > 0)//Open
 		{
-			double targetPr = floor(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double targetPr = floor(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate + ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			double sz = ins->unitSz;
 			if ( - ins->netPosition + sz > ins->maxHoldingPos)
 			{
@@ -358,7 +358,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		if (ins->swapBidPr > 0)//Unwind
 		{
 			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
-			double targetPr = ceil(ins->swapBidPr - ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
+			double targetPr = ceil(ins->swapBidPr + ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
 			double sz = ins->unitSz;
 			if (sz > - ins->netPosition)//Net Position is negative.
 			{

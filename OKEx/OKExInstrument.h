@@ -239,8 +239,9 @@ public:
 	//OKExOrder* askOrd;
 	//arb
 	//Pairing SWAP and Futures. USDT margined.
-	//The cost of carry will be USDT rate / lever * 2 + the transaction fee. Assuming the funding fee of the SWAP is 0.
+	//The cost of carry will be USDT rate / lever * 2 + the transaction fee(0.02% Future Maker + 0.07% SWAP Taker). Assuming the funding fee of the SWAP is 0.
 	double targetRate;
+	double transactionFee;
 	double targetUnwindDiff;
 	double unwindingRatio; //percentage of currentPosDiff
 	double unitSz;

@@ -12,6 +12,7 @@ namespace GlobalVariables
 		extern std::string outputFilePath;
 		extern std::string feedFilePath;
 		extern std::string paramFile;
+		extern std::string arbParamFile;
 	}
 };
 

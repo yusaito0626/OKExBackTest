@@ -416,6 +416,12 @@ void OKExInstrument::setInstrumentData(std::map<std::string, std::string> mp)
         priceUnit = (int)(1 / tickSz);
         displayDigits = (int)floor(log10(priceUnit));
     }
+    if (instType == OKExEnums::instType::_FUTURES)
+    {
+        std::string yyyymmdd = "20" + instId.substr(instId.length() - 6);
+        std::map<int, Date>::iterator dt = calendar->GetDay(yyyymmdd);
+        remainingDays = dt->second - GlobalVariables::OKEx::today;
+    }
 }
 
 position::position()
@@ -659,6 +665,22 @@ OKExInstrument::OKExInstrument()
     bidOrd = nullptr;
     askOrd = nullptr;
     arbExecQueue = new LockFreeQueue::SISOQueue<dataOrder*>();
+    targetRate = 0.0;
+    transactionFee = 0.0;
+    unwindingRatio = 0.0;
+    unitSz = 0.0;
+    maxHoldingPos = 0.0;
+    remainingDays = 0;
+    targetUnwindDiff = 0.0;
+    avgSWAPPr = 0.0;
+    SWAPSz = 0.0;
+    avgFUTUREPr = 0.0;
+    FUTURESz = 0.0;
+    currentPosDiff = 0.0;
+    swapBidPr = 0.0;
+    swapAskPr = 0.0;
+    realizedPL = 0.0;
+    pairedSwap = nullptr;
 }
 OKExInstrument::~OKExInstrument()
 {
@@ -712,7 +734,28 @@ void OKExInstrument::setParams(std::map<std::string, std::string> params)
     {
         histReturnPeriod = stoi(params["histReturnPeriod"]);
     }
+    if (params.find("targetRate") != itend)
+    {
+        targetRate = stod(params["targetRate"]);
+    }
+    if (params.find("transactionFee") != itend)
+    {
+        transactionFee = stod(params["transactionFee"]);
+    }
+    if (params.find("unwindingRatio") != itend)
+    {
+        unwindingRatio = stod(params["unwindingRatio"]);
+    }
+    if (params.find("unitSz") != itend)
+    {
+        unitSz = stod(params["unitSz"]);
+    }
+    if (params.find("maxHoldingPos") != itend)
+    {
+        maxHoldingPos = stod(params["maxHoldingPos"]);
+    }
 }
+
 void OKExInstrument::updateTrade(OKExMktMsg* msg)
 {
     std::list<dataTrades*>::iterator it;

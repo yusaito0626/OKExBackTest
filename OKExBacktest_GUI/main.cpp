@@ -73,6 +73,10 @@ void ReadConfig(std::string configfilepath)
             {
                 GlobalVariables::OKExBacktest_GUI::paramFile = value;
             }
+            else if (variable == "arbParamFile")
+            {
+                GlobalVariables::OKExBacktest_GUI::arbParamFile = value;
+            }
         }
     }
 }

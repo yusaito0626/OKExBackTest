@@ -3,10 +3,12 @@
 #include "OKExEnums.h"
 #include "OKExOrder.h"
 #include "OKExMessage.h"
+#include "GlobalVariables.h"
 
 #include "../utils/ring.h"
 #include "../utils/LockFreeQueue.h"
 #include "../utils/Logging.h"
+#include "../utils/calendar.h"
 
 class book
 {
@@ -242,11 +244,11 @@ public:
 	//The cost of carry will be USDT rate / lever * 2 + the transaction fee(0.02% Future Maker + 0.07% SWAP Taker). Assuming the funding fee of the SWAP is 0.
 	double targetRate;
 	double transactionFee;
-	double targetUnwindDiff;
 	double unwindingRatio; //percentage of currentPosDiff
 	double unitSz;
 	double maxHoldingPos;
 	int remainingDays;
+	double targetUnwindDiff;
 	double avgSWAPPr;
 	double SWAPSz;
 	double avgFUTUREPr;

@@ -438,13 +438,14 @@ void MainWindow::InitializeObjects(void)
     calendar->Initialize(GlobalVariables::OKExBacktest_GUI::calandarFile);
     feedReader->initialize(GlobalVariables::OKExBacktest_GUI::outputFilePath);
     insList = feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\master.txt");
-    feedReader->readParamFile(GlobalVariables::OKExBacktest_GUI::paramFile);
     voms->initialize(insList, GlobalVariables::OKExBacktest_GUI::outputFilePath);
 }
 
 void MainWindow::SetNewDate(Date dt)
 {
     feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\OKExMaster_" + dt.strday + ".txt");
+    feedReader->readParamFile(GlobalVariables::OKExBacktest_GUI::paramFile);
+    feedReader->readParamFile(GlobalVariables::OKExBacktest_GUI::arbParamFile);
     feedReader->initializeArbPairs();
     voms->setNewDate();
 }

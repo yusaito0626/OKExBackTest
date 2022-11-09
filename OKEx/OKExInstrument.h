@@ -234,17 +234,34 @@ public:
 	double skewWgtExecBid;
 
 	//Optimizer
-	int remainingDays;
+	//test
+	//OKExOrder* bidOrd;
+	//OKExOrder* askOrd;
+	//arb
+	//Pairing SWAP and Futures. USDT margined.
+	//The cost of carry will be USDT rate / lever * 2 + the transaction fee. Assuming the funding fee of the SWAP is 0.
 	double targetRate;
 	double targetUnwindDiff;
-	double currentPosDiff;
 	double unwindingRatio; //percentage of currentPosDiff
-	double ulyPr;
+	double unitSz;
+	double maxHoldingPos;
+	int remainingDays;
+	double avgSWAPPr;
+	double SWAPSz;
+	double avgFUTUREPr;
+	double FUTURESz;
+	double currentPosDiff;
+	double swapBidPr;
+	double swapAskPr;
+	double realizedPL;
+	OKExInstrument* pairedSwap;
+	LockFreeQueue::SISOQueue<dataOrder*>* arbExecQueue;
+
+
 	//Place both bid ans ask order when opening position is 0.
-	//Once you got the position, bid or ask ord + unwindingPos;
+	//Once you got the position, bid or ask ord + unwinding;
 	OKExOrder* bidOrd;
 	OKExOrder* askOrd;
-	OKExOrder* unwindOrd;
 
 	OKExInstrument();
 	~OKExInstrument();
@@ -257,7 +274,6 @@ public:
 	void checkExecution(std::map<int,book*>::iterator currentbk,OKExEnums::side orgSide, double orgSz, int pr);
 	bool reshapeBooks(void);
 	std::map<int, book*>::iterator findBest(int pr, OKExEnums::side side);
-	bool reflectMsg(OKExMktMsg* msg);
 	void updateOrders(dataOrder* dtord);
 	void addNewOrder(OKExOrder* ord);
 	double getPriorQuantity(OKExEnums::side side, double px);

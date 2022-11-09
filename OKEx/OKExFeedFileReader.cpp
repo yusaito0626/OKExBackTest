@@ -76,6 +76,57 @@ std::map<std::string, OKExInstrument*>* OKExFeedFileReader::initializeInsList(st
 	return insList;
 }
 
+bool OKExFeedFileReader::initializeArbPairs(void)
+{
+	if (!insList)
+	{
+		return false;
+	}
+	else
+	{
+		std::map<OKExInstrument*, std::list<OKExInstrument*>*>::iterator apit;
+		std::map<OKExInstrument*, std::list<OKExInstrument*>*>::iterator apitend;
+		if (arbPairs)
+		{
+			apitend = arbPairs->end();
+			for (apit = arbPairs->begin(); apit != apitend; ++apit)
+			{
+				delete apit->second;
+			}
+			arbPairs->clear();
+		}
+		else
+		{
+			arbPairs = new std::map<OKExInstrument*, std::list<OKExInstrument*>*>();
+		}
+		std::map<std::string, OKExInstrument*>::iterator insit;
+		std::map<std::string, OKExInstrument*>::iterator insitend = insList->end();
+		for (insit = insList->begin(); insit != insitend; ++insit)
+		{
+			if (insit->second->instType == OKExEnums::instType::_SWAP)
+			{
+				if (arbPairs->find(insit->second) == arbPairs->end())
+				{
+					arbPairs->emplace(insit->second, new std::list<OKExInstrument*>());
+				}
+			}
+		}
+		apitend = arbPairs->end();
+		for (insit = insList->begin(); insit != insitend; ++insit)
+		{
+			for (apit = arbPairs->begin(); apit != apitend; ++apit)
+			{
+				if (apit->first->uly == insit->second->uly && insit->second->instType == OKExEnums::instType::_FUTURES)
+				{
+					insit->second->pairedSwap = apit->first;
+					apit->second->push_back(insit->second);	
+				}
+			}
+		}
+	}
+	return true;
+}
+
 void OKExFeedFileReader::readParamFile(std::string paramfile)
 {
 	std::ifstream fs(paramfile);
@@ -201,6 +252,12 @@ bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
 				if (ins->second->isTrading)
 				{
 					blOptimize = ins->second->updateBooks(msg);
+					dataOrder* exec;
+					while (ins->second->arbExecQueue->Count() > 0)
+					{
+						exec = ins->second->arbExecQueue->Dequeue();
+						optimizer->arbExeTrigger(exec, ins->second);
+					}
 					ins->second->calcMid();
 					ts = ins->second->ts;
 					voms->checkWaitingOrdQueue(ts);
@@ -215,7 +272,7 @@ bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
 				ins->second->calcMid();
 				ts = ins->second->ts;
 				voms->checkWaitingOrdQueue(ts);
-				blOptimize = true;
+				blOptimize = false;
 			}
 		}
 	}

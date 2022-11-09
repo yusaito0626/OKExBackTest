@@ -22,9 +22,13 @@ public:
 
 	std::ofstream outputFile;
 
+	std::map<OKExInstrument*, std::list<OKExInstrument*>*>* arbPairs;
+
+
 	~OKExFeedFileReader();
 	void initialize(std::string outputFilePath);
 	std::map<std::string, OKExInstrument*>* initializeInsList(std::string masterfile);
+	bool initializeArbPairs(void);
 	void readParamFile(std::string paramfile);
 	void readFeedFile(std::string feedFile);
 	bool reflectOneMsg(OKExMktMsg* msg);

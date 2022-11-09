@@ -517,10 +517,6 @@ void position::init(void)
 
 OKExInstrument::OKExInstrument()
 {
-    //test
-    //bidOrd = nullptr;
-    //askOrd = nullptr;
-
     instId = "";
     instType = OKExEnums::instType::_NONE;
     std::string baseCcy = "";
@@ -658,6 +654,11 @@ OKExInstrument::OKExInstrument()
     execBidVol = 0.0;
     execAskAmt = 0.0;
     execBidAmt = 0.0;
+
+    //arb Variables 
+    bidOrd = nullptr;
+    askOrd = nullptr;
+    arbExecQueue = new LockFreeQueue::SISOQueue<dataOrder*>();
 }
 OKExInstrument::~OKExInstrument()
 {
@@ -1351,8 +1352,14 @@ bool OKExInstrument::updateBooks(OKExMktMsg* msg)
             break;
         }
     }
-    
-    return false;
+    if (prevBestAsk != bestAsk || prevBestBid != bestBid)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 
@@ -1523,29 +1530,6 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
         }
     }
     checkWaitingExeQueue();
-}
-
-bool OKExInstrument::reflectMsg(OKExMktMsg* msg)
-{
-    bool blOptimize = false;
-    if (msg->args->at("channel") == "books")
-    {
-        if (msg->args->at("action") == "snapshot")
-        {
-            initializeBooks(msg,1000);
-        }
-        else if(msg->args->at("action") == "update")
-        {
-            blOptimize = updateBooks(msg);
-        }
-    }
-    else if (msg->args->at("channel") == "trades")
-    {
-        updateTrade(msg);
-        blOptimize = true;
-    }
-    //calcMid
-    return blOptimize;
 }
 
 void OKExInstrument::updateOrders(dataOrder* dtord)
@@ -1930,5 +1914,6 @@ void OKExInstrument::checkWaitingExeQueue(void)
     {
         exec = waitingExeQueue->Dequeue();
         updateOrders(exec);
+        arbExecQueue->Enqueue(exec);
     }
 }

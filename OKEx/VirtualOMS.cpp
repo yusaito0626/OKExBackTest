@@ -285,8 +285,11 @@ void VirtualOMS::checkWaitingOrdQueue(long long _tm)
 				tkt = waitingOrderQueue->Dequeue();
 				ins = insList->at(tkt->instId);
 				ack = createAckTicket(_tm, tkt);
-				ins->updateOrders(ack);
-				ackQueue->Enqueue(ack);
+				if (ack->tktType != OKExEnums::ticketType::_EXEC)
+				{
+					ins->updateOrders(ack);
+				}
+				//ackQueue->Enqueue(ack);
 			}
 			else
 			{
@@ -298,8 +301,11 @@ void VirtualOMS::checkWaitingOrdQueue(long long _tm)
 			tkt = waitingOrderQueue->Dequeue();
 			ins = insList->at(tkt->instId);
 			ack = createAckTicket(_tm, tkt);
-			ins->updateOrders(ack);
-			ackQueue->Enqueue(ack);
+			if (ack->tktType != OKExEnums::ticketType::_EXEC)
+			{
+				ins->updateOrders(ack);
+			}
+			//ackQueue->Enqueue(ack);
 		}
 	}
 }
@@ -317,6 +323,7 @@ dataOrder* VirtualOMS::createAckTicket(long long _tm, ordTicket* tkt)
 		}
 		dtord = execPool->pop();
 	}
+	ackQueue->Enqueue(dtord);
 	OKExInstrument* ins = insList->at(tkt->instId);
 	OKExOrder* objord = ins->ordList->at(tkt->clOrdId);
 	dataOrder* exec;
@@ -420,63 +427,140 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 	std::string msg = "The order took the opposite books";
 	OKExOrder* ord = nullptr;
 	dataOrder* exec = nullptr;
-	switch (ack->side)
+	if (ack->px > 0)
 	{
-	case OKExEnums::side::_BUY:
-		if ((int)(ack->px * ins->priceUnit) < ins->bestAsk->first)
+		switch (ack->side)
 		{
-			return nullptr;
-		}
-		else if ((int)(ack->px * ins->priceUnit) == ins->bestAsk->first)
-		{
-			ord = ins->ordList->at(ack->clOrdId);
-			if (ack->sz - ord->execSz > ins->bestAsk->second->sz)
+		case OKExEnums::side::_BUY:
+			if ((int)(ack->px * ins->priceUnit) < ins->bestAsk->first)
 			{
-				ins->updateOrders(ack);
-				exec = execute(tm,ins->instId, ord, ins->bestAsk->second->sz, ack->px, msg);
+				return nullptr;
+			}
+			else if ((int)(ack->px * ins->priceUnit) == ins->bestAsk->first)
+			{
+				ord = ins->ordList->at(ack->clOrdId);
+				if (ack->sz - ord->execSz > ins->bestAsk->second->sz)
+				{
+					if (ack->tktType != OKExEnums::ticketType::_EXEC)
+					{
+						ins->updateOrders(ack);
+					}
+					exec = execute(tm, ins->instId, ord, ins->bestAsk->second->sz, ack->px, msg);
+				}
+				else
+				{
+					if (ack->tktType != OKExEnums::ticketType::_EXEC)
+					{
+						ins->updateOrders(ack);
+					}
+					exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+				}
 			}
 			else
 			{
-				ins->updateOrders(ack);
+				ord = ins->ordList->at(ack->clOrdId);
+				if (ack->tktType != OKExEnums::ticketType::_EXEC)
+				{
+					ins->updateOrders(ack);
+				}
 				exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
 			}
-		}
-		else
-		{
-			ord = ins->ordList->at(ack->clOrdId);
-			ins->updateOrders(ack);
-			exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
-		}
-		break;
-	case OKExEnums::side::_SELL:
-		if ((int)(ack->px * ins->priceUnit) > ins->bestBid->first)
-		{
-			return nullptr;
-		}
-		else if ((int)(ack->px * ins->priceUnit) == ins->bestBid->first)
-		{
-			ord = ins->ordList->at(ack->clOrdId);
-			if (ack->sz - ord->execSz > ins->bestBid->second->sz)
+			break;
+		case OKExEnums::side::_SELL:
+			if ((int)(ack->px * ins->priceUnit) > ins->bestBid->first)
 			{
-				ins->updateOrders(ack);
-				exec = execute(tm, ins->instId, ord, ins->bestBid->second->sz, ack->px, msg);
+				return nullptr;
+			}
+			else if ((int)(ack->px * ins->priceUnit) == ins->bestBid->first)
+			{
+				ord = ins->ordList->at(ack->clOrdId);
+				if (ack->sz - ord->execSz > ins->bestBid->second->sz)
+				{
+					if (ack->tktType != OKExEnums::ticketType::_EXEC)
+					{
+						ins->updateOrders(ack);
+					}
+					exec = execute(tm, ins->instId, ord, ins->bestBid->second->sz, ack->px, msg);
+				}
+				else
+				{
+					if (ack->tktType != OKExEnums::ticketType::_EXEC)
+					{
+						ins->updateOrders(ack);
+					}
+					exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+				}
 			}
 			else
 			{
+				ord = ins->ordList->at(ack->clOrdId);
 				ins->updateOrders(ack);
 				exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
 			}
+			break;
+		default:
+			break;
 		}
-		else
-		{
-			ord = ins->ordList->at(ack->clOrdId);
-			ins->updateOrders(ack);
-			exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
-		}
-		break;
-	default:
-		break;
 	}
+	else//Market Order
+	{
+		std::map<int, book*>::iterator bk;
+		std::map<int, book*>::iterator bkend = ins->books->end();
+		std::map<int, book*>::iterator bkbegin = ins->books->begin();
+		double sz = ack->sz;
+		double exeSz = 0;
+		std::string msg;
+		ord = ins->ordList->at(ack->clOrdId);
+		switch (ack->side)
+		{
+		case OKExEnums::side::_BUY:
+			bk = ins->bestAsk;
+			while (sz > ins->lotSz)
+			{
+				if (bk == bkend)
+				{
+					break;
+				}
+				exeSz = bk->second->sz;
+				if (exeSz > sz)
+				{
+					exeSz = sz;
+				}
+				exec  = execute(tm, ins->instId, ord, exeSz, bk->second->px, msg);
+				sz -= exeSz;
+				++bk;
+			}
+			break;
+		case OKExEnums::side::_SELL:
+			bk = ins->bestBid;
+			while (sz > ins->lotSz)
+			{
+				if (bk == ins->books->end())
+				{
+					break;
+				}
+				exeSz = bk->second->sz;
+				if (exeSz > sz)
+				{
+					exeSz = sz;
+				}
+				exec = execute(tm, ins->instId, ord, exeSz, bk->second->px, msg);
+				sz -= exeSz;
+				if (bk == bkbegin)
+				{
+					bk = bkend;
+				}
+				else
+				{
+					--bk;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	
 	ins->checkWaitingExeQueue();
 	return exec;
 }
@@ -509,6 +593,7 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 		}
 		exec = execPool->pop();
 	}
+	ackQueue->Enqueue(exec);
 	exec->tktType = OKExEnums::ticketType::_EXEC;
 	exec->clOrdId = ord->baseOrdId;
 	exec->ordId = getOrdId(instId);

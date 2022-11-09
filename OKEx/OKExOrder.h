@@ -28,6 +28,9 @@ public:
 
 	double priorQuantity;
 
+	bool isUnwind;//For Arb
+	std::string pairInstId;//For Arb
+
 	OKExOrder();
 	OKExOrder(const OKExOrder& obj);
 	~OKExOrder();

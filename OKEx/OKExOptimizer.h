@@ -11,8 +11,15 @@ class OKExOptimizer
 	OKExOptimizer& operator=(const OKExOptimizer&) {};
 public:
 	~OKExOptimizer() {};
+	void initilaize(std::map<std::string, OKExInstrument*>* _insList);
+
+	std::map<std::string, OKExInstrument*>* insList;
 
 	void optimize(OKExInstrument* ins);
+
+	void test(OKExInstrument* ins);
+	void arb(OKExInstrument* ins);
+	void arbExeTrigger(dataOrder* exec, OKExInstrument* ins);
 
 	void calcFactors(OKExInstrument* ins);
 	void updateRings(OKExInstrument* ins);

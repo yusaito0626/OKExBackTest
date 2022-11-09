@@ -445,6 +445,7 @@ void MainWindow::InitializeObjects(void)
 void MainWindow::SetNewDate(Date dt)
 {
     feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\OKExMaster_" + dt.strday + ".txt");
+    feedReader->initializeArbPairs();
     voms->setNewDate();
 }
 

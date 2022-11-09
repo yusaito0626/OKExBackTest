@@ -2,79 +2,463 @@
 
 OKExOptimizer* optimizer = OKExOptimizer::getInstance();
 
+void OKExOptimizer::initilaize(std::map<std::string, OKExInstrument*>* _insList)
+{
+
+}
+
 
 void OKExOptimizer::optimize(OKExInstrument* ins)
 {
+	
+}
+
+void OKExOptimizer::test(OKExInstrument* ins)
+{
 	//Simple Testing Optimization
-	//std::string msg;
-	//std::map<int, book*>::iterator bkend = ins->books->end();
-	//if (ins->bestBid != bkend)
-	//{
-	//	std::map<int, book*>::iterator targetBuyPr = ins->books->find(ins->bestBid->first - 10);
-	//	if (targetBuyPr != bkend)
-	//	{
-	//		if (!ins->bidOrd)
-	//		{
-	//			ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetBuyPr->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
-	//		}
-	//		else if (ins->bidOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->bidOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->bidOrd->status != OKExEnums::orderState::_WAIT_CAN)
-	//		{
-	//			if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
-	//			{
-	//				ins->bidOrd = nullptr;
-	//			}
-	//			else if (ins->bidOrd->px != ins->bestBid->second->px)
-	//			{
-	//				ins->bidOrd = voms->sendModOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, targetBuyPr->second->px, ins->bidOrd->sz, msg);
-	//			}
-	//		}
-	//	}
-	//	else if (ins->bidOrd)
-	//	{
-	//		if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
-	//		{
-	//			ins->bidOrd = nullptr;
-	//		}
-	//		else
-	//		{
-	//			voms->sendCanOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, msg);
-	//		}
-	//	}
-	//}
-	//
-	//if (ins->bestAsk != ins->books->end())
-	//{
-	//	std::map<int, book*>::iterator targetSellPr = ins->books->find(ins->bestAsk->first + 10);
-	//	if (targetSellPr != bkend)
-	//	{
-	//		if (!ins->askOrd)
-	//		{
-	//			ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetSellPr->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
-	//		}
-	//		else if (ins->askOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->askOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->askOrd->status != OKExEnums::orderState::_WAIT_CAN)
-	//		{
-	//			if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
-	//			{
-	//				ins->askOrd = nullptr;
-	//			}
-	//			else if (ins->askOrd->px != ins->bestAsk->second->px)
-	//			{
-	//				ins->askOrd = voms->sendModOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, targetSellPr->second->px, ins->askOrd->sz, msg);
-	//			}
-	//		}
-	//	}
-	//	else if (ins->askOrd)
-	//	{
-	//		if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
-	//		{
-	//			ins->askOrd = nullptr;
-	//		}
-	//		else
-	//		{
-	//			voms->sendCanOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, msg);
-	//		}
-	//	}
-	//}
+	std::string msg;
+	std::map<int, book*>::iterator bkend = ins->books->end();
+	if (ins->bestBid != bkend)
+	{
+		std::map<int, book*>::iterator targetBuyPr = ins->books->find(ins->bestBid->first - 10);
+		if (targetBuyPr != bkend)
+		{
+			if (!ins->bidOrd)
+			{
+				ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetBuyPr->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
+			}
+			else if (ins->bidOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->bidOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->bidOrd->status != OKExEnums::orderState::_WAIT_CAN)
+			{
+				if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					ins->bidOrd = nullptr;
+				}
+				else if (ins->bidOrd->px != ins->bestBid->second->px)
+				{
+					ins->bidOrd = voms->sendModOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, targetBuyPr->second->px, ins->bidOrd->sz, msg);
+				}
+			}
+		}
+		else if (ins->bidOrd)
+		{
+			if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
+			{
+				ins->bidOrd = nullptr;
+			}
+			else
+			{
+				voms->sendCanOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, msg);
+			}
+		}
+	}
+	
+	if (ins->bestAsk != ins->books->end())
+	{
+		std::map<int, book*>::iterator targetSellPr = ins->books->find(ins->bestAsk->first + 10);
+		if (targetSellPr != bkend)
+		{
+			if (!ins->askOrd)
+			{
+				ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetSellPr->second->px, 1, OKExEnums::ordType::_LIMIT, msg);
+			}
+			else if (ins->askOrd->status != OKExEnums::orderState::_WAIT_NEW && ins->askOrd->status != OKExEnums::orderState::_WAIT_AMD && ins->askOrd->status != OKExEnums::orderState::_WAIT_CAN)
+			{
+				if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					ins->askOrd = nullptr;
+				}
+				else if (ins->askOrd->px != ins->bestAsk->second->px)
+				{
+					ins->askOrd = voms->sendModOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, targetSellPr->second->px, ins->askOrd->sz, msg);
+				}
+			}
+		}
+		else if (ins->askOrd)
+		{
+			if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
+			{
+				ins->askOrd = nullptr;
+			}
+			else
+			{
+				voms->sendCanOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, msg);
+			}
+		}
+	}
+}
+void OKExOptimizer::arb(OKExInstrument* ins)
+{
+	std::string msg;
+	if (ins->pairedSwap->bestAsk != ins->pairedSwap->books->end())
+	{
+		ins->swapAskPr = ins->pairedSwap->bestAsk->second->px;
+	}
+	else
+	{
+		ins->swapAskPr = 0;
+	}
+	if (ins->pairedSwap->bestBid != ins->pairedSwap->books->end())
+	{
+		ins->swapBidPr = ins->pairedSwap->bestBid->second->px;
+	}
+	else
+	{
+		ins->swapBidPr = 0;
+	}
+	if (ins->netPosition == 0)//Open Orders
+	{
+		if(ins->swapBidPr > 0)//Buy Order
+		{
+			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double sz = ins->unitSz;
+			if (ins->netPosition + sz > ins->maxHoldingPos)
+			{
+				sz = ins->maxHoldingPos - ins->netPosition;
+				if (sz < 0)
+				{
+					sz = 0;
+				}
+			}
+			if (targetPr > ins->bestBid->second->px)
+			{
+				targetPr = ins->bestBid->second->px;
+			}
+			if (!ins->bidOrd)
+			{
+				if (sz > 0 && targetPr > 0)
+				{
+					ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+				}
+			}
+			else
+			{
+				if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					if (sz > 0 && targetPr > 0)
+					{
+						ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+					}
+					else
+					{
+						ins->bidOrd = nullptr;
+					}
+				}
+				else
+				{
+					if (targetPr != ins->bidOrd->px || sz < ins->bidOrd->sz)
+					{
+						if (targetPr <= 0)
+						{
+							sz = 0;//Cancel
+						}
+						voms->sendModOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, targetPr, sz, msg);
+					}
+				}
+			}
+		}
+		if (ins->swapAskPr > 0)//Sell Order
+		{
+			double targetPr = ceil(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double sz = ins->unitSz;
+			if (ins->netPosition + sz > ins->maxHoldingPos)
+			{
+				sz = ins->maxHoldingPos - ins->netPosition;
+				if (sz < 0)
+				{
+					sz = 0;
+				}
+			}
+			if (targetPr < ins->bestAsk->second->px)
+			{
+				targetPr = ins->bestAsk->second->px;
+			}
+			if (!ins->askOrd)
+			{
+				if (sz > 0 && targetPr > 0)
+				{
+					ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+				}
+			}
+			else
+			{
+				if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					if (sz > 0 && targetPr > 0)
+					{
+						ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+					}
+					else
+					{
+						ins->askOrd = nullptr;
+					}
+				}
+				else
+				{
+					if (targetPr != ins->askOrd->px || sz < ins->askOrd->sz)
+					{
+						if (targetPr <= 0)
+						{
+							sz = 0;//Cancel
+						}
+						voms->sendModOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, targetPr, sz, msg);
+					}
+				}
+			}
+		}
+	}
+	else if (ins->netPosition > 0)//Open Future:Buy SWAP:Sell, Unwind Future:Sell SWAP:Buy
+	{
+		if (ins->swapBidPr > 0)//Open
+		{
+			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double sz = ins->unitSz;
+			if (ins->netPosition + sz > ins->maxHoldingPos)
+			{
+				sz = ins->maxHoldingPos - ins->netPosition;
+				if (sz < 0)
+				{
+					sz = 0;
+				}
+			}
+			if (targetPr > ins->bestBid->second->px)
+			{
+				targetPr = ins->bestBid->second->px;
+			}
+			if (!ins->bidOrd)
+			{
+				if (sz > 0 && targetPr > 0)
+				{
+					ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+				}
+			}
+			else
+			{
+				if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					if (sz > 0 && targetPr > 0)
+					{
+						ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+					}
+					else
+					{
+						ins->bidOrd = nullptr;
+					}
+				}
+				else
+				{
+					if (targetPr != ins->bidOrd->px || sz < ins->bidOrd->sz)
+					{
+						if (targetPr <= 0)
+						{
+							sz = 0;//Cancel
+						}
+						voms->sendModOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, targetPr, sz, msg);
+					}
+				}
+			}
+		}
+		if (ins->swapAskPr > 0)//Unwind
+		{
+			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
+			double targetPr = ceil(ins->swapAskPr + ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
+			double sz = ins->unitSz;
+			if (sz > ins->netPosition)//Net Position is positive.
+			{
+				sz = ins->netPosition;
+			}
+			if (targetPr < ins->bestAsk->second->px)
+			{
+				targetPr = ins->bestAsk->second->px;
+			}
+			if (!ins->askOrd)
+			{
+				if (sz > 0 && targetPr > 0)
+				{
+					ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+				}
+			}
+			else
+			{
+				if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					if (sz > 0 && targetPr > 0)
+					{
+						ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+					}
+					else
+					{
+						ins->askOrd = nullptr;
+					}
+				}
+				else
+				{
+					if (targetPr != ins->askOrd->px || sz < ins->askOrd->sz)
+					{
+						if (targetPr <= 0)
+						{
+							sz = 0;//Cancel
+						}
+						voms->sendModOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, targetPr, sz, msg);
+					}
+				}
+			}
+		}
+	}
+	else if (ins->netPosition < 0)//Open Future:Sell SWAP:Buy, Unwind Future:Buy SWAP:Sell
+	{
+		if (ins->swapAskPr > 0)//Open
+		{
+			double targetPr = floor(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate) * ins->priceUnit) / ins->priceUnit;
+			double sz = ins->unitSz;
+			if ( - ins->netPosition + sz > ins->maxHoldingPos)
+			{
+				sz = ins->maxHoldingPos + ins->netPosition;
+				if (sz < 0)
+				{
+					sz = 0;
+				}
+			}
+			if (targetPr < ins->bestAsk->second->px)
+			{
+				targetPr = ins->bestAsk->second->px;
+			}
+			if (!ins->askOrd)
+			{
+				if (sz > 0 && targetPr > 0)
+				{
+					ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+				}
+			}
+			else
+			{
+				if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					if (sz > 0 && targetPr > 0)
+					{
+						ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+					}
+					else
+					{
+						ins->askOrd = nullptr;
+					}
+				}
+				else
+				{
+					if (targetPr != ins->askOrd->px || sz < ins->askOrd->sz)
+					{
+						if (targetPr <= 0)
+						{
+							sz = 0;//Cancel
+						}
+						voms->sendModOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, targetPr, sz, msg);
+					}
+				}
+			}
+		}
+		if (ins->swapBidPr > 0)//Unwind
+		{
+			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
+			double targetPr = ceil(ins->swapBidPr - ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
+			double sz = ins->unitSz;
+			if (sz > - ins->netPosition)//Net Position is negative.
+			{
+				sz = - ins->netPosition;
+			}
+			if (targetPr < ins->bestBid->second->px)
+			{
+				targetPr = ins->bestBid->second->px;
+			}
+			if (!ins->bidOrd)
+			{
+				if (sz > 0 && targetPr > 0)
+				{
+					ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+				}
+			}
+			else
+			{
+				if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
+				{
+					if (sz > 0 && targetPr > 0)
+					{
+						ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
+					}
+					else
+					{
+						ins->bidOrd = nullptr;
+					}
+				}
+				else
+				{
+					if (targetPr != ins->bidOrd->px || sz < ins->bidOrd->sz)
+					{
+						if (targetPr <= 0)
+						{
+							sz = 0;//Cancel
+						}
+						voms->sendModOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, targetPr, sz, msg);
+					}
+				}
+			}
+		}
+	}
+}
+void OKExOptimizer::arbExeTrigger(dataOrder* exec, OKExInstrument* ins)
+{
+	if (ins->instType == OKExEnums::instType::_FUTURES)//Send Market Order of SWAP
+	{
+		std::string msg;
+		OKExOrder* ord = ins->ordList->at(exec->clOrdId);
+		OKExInstrument* pairFtr = ins->pairedSwap;
+		OKExEnums::side side;
+		switch (ord->side)
+		{
+		case OKExEnums::side::_BUY:
+			side = OKExEnums::side::_SELL;
+			break;
+		case OKExEnums::side::_SELL:
+			side = OKExEnums::side::_BUY;
+			break;
+		default:
+			break;
+		}
+		OKExOrder* newOrd = voms->sendNewOrder(ins->ts, pairFtr->instId, OKExEnums::tradeMode::_CROSS, side, 0, exec->fillSz, OKExEnums::ordType::_MARKET, msg);
+		newOrd->pairInstId = ins->instId;
+		newOrd->isUnwind = ord->isUnwind;
+		if (ord->isUnwind)
+		{
+			ins->FUTURESz -= exec->fillSz;
+			if (ins->FUTURESz < ins->lotSz)
+			{
+				ins->FUTURESz = 0;
+				ins->avgFUTUREPr = 0;
+			}
+		}
+		else
+		{
+			ins->avgFUTUREPr= (ins->avgFUTUREPr* ins->FUTURESz+ exec->fillPx * exec->fillSz) / (ins->FUTURESz + exec->fillSz);
+			ins->FUTURESz += exec->fillSz;
+		}
+	}
+	else if (ins->instType == OKExEnums::instType::_SWAP)//Record Execution information to the future
+	{
+		OKExOrder* ord = ins->ordList->at(exec->clOrdId);
+		OKExInstrument* pairFtr = insList->at(ord->pairInstId);
+		if (ord->isUnwind)
+		{
+			pairFtr->SWAPSz -= exec->fillSz;
+			if (pairFtr->SWAPSz < pairFtr->lotSz)
+			{
+				pairFtr->SWAPSz = 0;
+				pairFtr->avgSWAPPr = 0;
+			}
+		}
+		else
+		{
+			pairFtr->avgSWAPPr = (pairFtr->avgSWAPPr * pairFtr->SWAPSz + exec->fillPx * exec->fillSz) / (pairFtr->SWAPSz + exec->fillSz);
+			pairFtr->SWAPSz += exec->fillSz;
+		}
+	}
 }
 
 void OKExOptimizer::calcFactors(OKExInstrument* ins)

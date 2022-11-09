@@ -256,6 +256,7 @@ bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
 					while (ins->second->arbExecQueue->Count() > 0)
 					{
 						exec = ins->second->arbExecQueue->Dequeue();
+						//Should add this line right after receive execution.
 						optimizer->arbExeTrigger(exec, ins->second);
 					}
 					ins->second->calcMid();

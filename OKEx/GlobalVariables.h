@@ -10,7 +10,7 @@ namespace GlobalVariables
 		extern Date today;
 		extern int latency;//msec
 
-		extern int maxOrdSize;
+		extern double maxOrdSize;
 	}
 };
 

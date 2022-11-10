@@ -61,6 +61,8 @@ MainWindow::MainWindow(QWidget *parent)
     feedCount = 0;
     lastfeedCount = 0;
 
+    currentOrderRow = 0;
+
     Displaytimer = new QTimer(this);
     Displaytimer->setInterval(1000);
     Displaytimer->setSingleShot(false);
@@ -390,6 +392,7 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
             {
                 if (i > 99)
                 {
+                    --i;
                     break;
                 }
                 ui->tableOrders->item(i, 0)->setText(QString::fromStdString(it->second->baseOrdId));
@@ -400,6 +403,18 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
                 ui->tableOrders->item(i, 5)->setText(QString("%L1").arg(it->second->execSz, 0, 'f', 5));
                 ++i;
             }
+            int tempCurrentRow = i - 1;
+            while (i <= currentOrderRow)
+            {
+                ui->tableOrders->item(i, 0)->setText("");
+                ui->tableOrders->item(i, 1)->setText("");
+                ui->tableOrders->item(i, 2)->setText("");
+                ui->tableOrders->item(i, 3)->setText("");
+                ui->tableOrders->item(i, 4)->setText("");
+                ui->tableOrders->item(i, 5)->setText("");
+                ++i;
+            }
+            currentOrderRow = tempCurrentRow;
             ins->lckLiveOrdList = false;
             break;
         }
@@ -439,6 +454,7 @@ void MainWindow::InitializeObjects(void)
     feedReader->initialize(GlobalVariables::OKExBacktest_GUI::outputFilePath);
     insList = feedReader->initializeInsList(GlobalVariables::OKExBacktest_GUI::masterFilePath + "\\master.txt");
     voms->initialize(insList, GlobalVariables::OKExBacktest_GUI::outputFilePath);
+    optimizer->initilaize(insList);
 }
 
 void MainWindow::SetNewDate(Date dt)

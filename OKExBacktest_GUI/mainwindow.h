@@ -78,6 +78,8 @@ private:
     int feedCount;
     int lastfeedCount;
 
+    int currentOrderRow;
+
     QLabel* stbarDate;
     QLabel* stbarMsg;
     QLabel* stbarStatus;

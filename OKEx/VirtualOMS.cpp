@@ -78,12 +78,13 @@ OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums
 	}
 	OKExInstrument* ins = insList->at(instId);
 	bkitend = ins->books->end();
-	if (ins->books->find((int)(px * ins->priceUnit)) == bkitend)
+	if (ins->books->find((int)(px * ins->priceUnit)) == bkitend && px > 0)
 	{
 		msg = "Unknown price. px:" + std::to_string(px);
 		return nullptr;
 	}
-	if (sz <= 0 || sz >= GlobalVariables::OKEx::maxOrdSize)
+	
+	if ((int)round(sz / ins->lotSz) < 1 || (int)round(sz / ins->lotSz) >= (int)round(GlobalVariables::OKEx::maxOrdSize / ins->lotSz))//
 	{
 		msg = "Irregular size. sz" + std::to_string(sz);
 		return nullptr;
@@ -174,15 +175,19 @@ OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::stri
 		break;
 	}
 	std::map<int, book*>::iterator bkitend = ins->books->end();
-	if (ins->books->find((int)(newPx * ins->priceUnit)) == bkitend)
+	if (ins->books->find((int)(newPx * ins->priceUnit)) == bkitend && newPx > 0)
 	{
 		msg = "Unknown price. px:" + std::to_string(newPx);
 		return nullptr;
 	}
-	if (newSz <= 0 || newSz >= GlobalVariables::OKEx::maxOrdSize)
+	if (newSz < 0 || (int)round(newSz / ins->lotSz) >= (int)round(GlobalVariables::OKEx::maxOrdSize / ins->lotSz))//
 	{
 		msg = "Irregular size. sz" + std::to_string(newSz);
 		return nullptr;
+	}
+	else if ((int)round(newSz / ins->lotSz) < 1)
+	{
+		newSz = 0;
 	}
 	ordTicket* tkt = tktPool->pop();
 	if (!tkt)
@@ -515,7 +520,7 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 		{
 		case OKExEnums::side::_BUY:
 			bk = ins->bestAsk;
-			while (sz > ins->lotSz)
+			while ((int)round(sz / ins->lotSz) >= 1)
 			{
 				if (bk == bkend)
 				{
@@ -533,7 +538,7 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 			break;
 		case OKExEnums::side::_SELL:
 			bk = ins->bestBid;
-			while (sz > ins->lotSz)
+			while ((int)round(sz / ins->lotSz) >= 1)
 			{
 				if (bk == ins->books->end())
 				{

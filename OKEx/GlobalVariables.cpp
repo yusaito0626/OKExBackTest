@@ -7,6 +7,6 @@ namespace GlobalVariables
 		std::string suffix = "";
 		Date today;
 		int latency = 0;//msec
-		int maxOrdSize = 10;
+		double maxOrdSize = 10;
 	}
 };

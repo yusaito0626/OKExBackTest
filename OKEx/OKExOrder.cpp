@@ -23,6 +23,9 @@ OKExOrder::OKExOrder()
 	newSz = 0.0;
 
 	priorQuantity = 0.0;
+
+	isUnwind = false;
+	pairInstId = "";
 }
 OKExOrder::OKExOrder(const OKExOrder& obj)
 {
@@ -47,6 +50,9 @@ OKExOrder::OKExOrder(const OKExOrder& obj)
 	newSz = obj.newSz;
 
 	priorQuantity = obj.priorQuantity;
+
+	isUnwind = obj.isUnwind;
+	pairInstId = obj.pairInstId;
 }
 OKExOrder::~OKExOrder()
 {
@@ -75,6 +81,9 @@ void OKExOrder::init(void)
 	newSz = 0.0;
 
 	priorQuantity = 0.0;
+
+	isUnwind = false;
+	pairInstId = "";
 }
 
 

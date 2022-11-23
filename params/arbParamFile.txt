@@ -1,0 +1,12 @@
+{"alias": "BTC-USDT","uly": "","targetRate":"0","transactionFee":"0","unwindingRatio":"0","unitSz":"0","maxHoldingPos":"0"}
+{"alias": "this_week","uly": "BTC-USDT","targetRate":"0.1","transactionFee":"0.009","unwindingRatio":"0.5","unitSz":"0.01","maxHoldingPos":"0.1"}
+{"alias": "next_week","uly": "BTC-USDT","targetRate":"0.08","transactionFee":"0.009","unwindingRatio":"0.4","unitSz":"0.01","maxHoldingPos":"0.1"}
+{"alias": "quarter","uly": "BTC-USDT","targetRate":"0.05","transactionFee":"0.009","unwindingRatio":"0","unitSz":"0.01","maxHoldingPos":"0.1"}
+{"alias": "next_quarter","uly": "BTC-USDT","targetRate":"0.05","transactionFee":"0.009","unwindingRatio":"0","unitSz":"0.01","maxHoldingPos":"0.1"}
+{"alias": "BTC-USDT-SWAP","uly": "BTC-USDT","targetRate":"0","transactionFee":"0","unwindingRatio":"0","unitSz":"0","maxHoldingPos":"0"}
+{"alias": "ETH-USDT","uly": "","targetRate":"0","transactionFee":"0","unwindingRatio":"0","unitSz":"0","maxHoldingPos":"0"}
+{"alias": "this_week","uly": "ETH-USDT","targetRate":"0.1","transactionFee":"0.009","unwindingRatio":"0.5","unitSz":"0.1","maxHoldingPos":"1"}
+{"alias": "next_week","uly": "ETH-USDT","targetRate":"0.08","transactionFee":"0.009","unwindingRatio":"0.4","unitSz":"0.1","maxHoldingPos":"1"}
+{"alias": "quarter","uly": "ETH-USDT","targetRate":"0.05","transactionFee":"0.009","unwindingRatio":"0","unitSz":"0.1","maxHoldingPos":"1"}
+{"alias": "next_quarter","uly": "ETH-USDT","targetRate":"0.05","transactionFee":"0.009","unwindingRatio":"0","unitSz":"0.1","maxHoldingPos":"1"}
+{"alias": "ETH-USDT-SWAP","uly": "ETH-USDT","targetRate":"0","transactionFee":"0","unwindingRatio":"0","unitSz":"0","maxHoldingPos":"0"}

@@ -12,7 +12,7 @@ OKExOrder::OKExOrder()
 	status = OKExEnums::orderState::_NONE;
 	side = OKExEnums::side::_NONE;
 	px = 0.0;
-	sz = 0.0;
+	sz = 0;
 	openSz = 0.0;
 	execSz = 0.0;
 	execAmt = 0.0;
@@ -70,9 +70,9 @@ void OKExOrder::init(void)
 	status = OKExEnums::orderState::_NONE;
 	side = OKExEnums::side::_NONE;
 	px = 0.0;
-	sz = 0.0;
-	openSz = 0.0;
-	execSz = 0.0;
+	sz = 0;
+	openSz = 0;
+	execSz = 0;
 	execAmt = 0.0;
 	avgPx = 0.0;
 	lastPx = 0.0;

@@ -22,7 +22,7 @@ public:
 	int numOfOrdBuy;
 	int numOfOrdSell;
 	std::map<std::string, OKExOrder*>* liveOrders;
-	double szMyOrd;
+	int szMyOrd;
 	int numOfMyOrd;
 	long long ts;
 
@@ -136,9 +136,9 @@ public:
 	int highestBook;
 	position longPosition;
 	position shortPosition;
-	double netPosition;
+	int netPosition;
 	double baseMid;
-	double prevNetPos;
+	int prevNetPos;
 
 	double tradePL;
 	double posPL;
@@ -158,8 +158,8 @@ public:
 
 	int tradedCntBuy;
 	int tradedCntSell;
-	double tradedQtyBuy;
-	double tradedQtySell;
+	int tradedQtyBuy;
+	int tradedQtySell;
 	double tradedAmtBuy;
 	double tradedAmtSell;
 	double skewWgtTradedQtyBuy;
@@ -205,7 +205,7 @@ public:
 	int ringDataCount;
 	long long lastRingUpdatedTime;
 	ring<double>* RVRing[60];
-	ring<double>* netPosRing[60];
+	ring<int>* netPosRing[60];
 	ring<double>* bookImbalanceRing[60];
 	ring<double>* execImbalanceRing[60];
 	ring<int>* bestAskRing[60];
@@ -245,14 +245,14 @@ public:
 	double targetRate;
 	double transactionFee;
 	double unwindingRatio; //percentage of currentPosDiff
-	double unitSz;
-	double maxHoldingPos;
+	int unitSz;
+	int maxHoldingPos;
 	int remainingDays;
 	double targetUnwindDiff;
 	double avgSWAPPr;
-	double SWAPSz;
+	int SWAPSz;
 	double avgFUTUREPr;
-	double FUTURESz;
+	int FUTURESz;
 	double currentPosDiff;
 	double swapBidPr;
 	double swapAskPr;

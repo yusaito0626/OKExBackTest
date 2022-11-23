@@ -611,7 +611,7 @@ OKExInstrument::OKExInstrument()
     for (int i = 0; i < 60; ++i)
     {
         RVRing[i] = new ring<double>(RINGSIZE);
-        netPosRing[i] = new ring<double>(RINGSIZE);
+        netPosRing[i] = new ring<int>(RINGSIZE);
         bookImbalanceRing[i] = new ring<double>(RINGSIZE);
         execImbalanceRing[i] = new ring<double>(RINGSIZE);
         bestAskRing[i] = new ring<int>(RINGSIZE);
@@ -633,7 +633,7 @@ OKExInstrument::OKExInstrument()
         for (int j = 0; j < RINGSIZE; ++j)
         {
             RVRing[i]->add(0.0);
-            netPosRing[i]->add(0.0);
+            netPosRing[i]->add(0);
             bookImbalanceRing[i]->add(0.0);
             execImbalanceRing[i]->add(0.0);
             bestAskRing[i]->add(0);
@@ -670,14 +670,14 @@ OKExInstrument::OKExInstrument()
     targetRate = 0.0;
     transactionFee = 0.0;
     unwindingRatio = 0.0;
-    unitSz = 0.0;
-    maxHoldingPos = 0.0;
+    unitSz = 0;
+    maxHoldingPos = 0;
     remainingDays = 0;
     targetUnwindDiff = 0.0;
     avgSWAPPr = 0.0;
-    SWAPSz = 0.0;
+    SWAPSz = 0;
     avgFUTUREPr = 0.0;
-    FUTURESz = 0.0;
+    FUTURESz = 0;
     currentPosDiff = 0.0;
     swapBidPr = 0.0;
     swapAskPr = 0.0;
@@ -750,11 +750,11 @@ void OKExInstrument::setParams(std::map<std::string, std::string> params)
     }
     if (params.find("unitSz") != itend)
     {
-        unitSz = stod(params["unitSz"]);
+        unitSz = (int)(stod(params["unitSz"]) / lotSz);
     }
     if (params.find("maxHoldingPos") != itend)
     {
-        maxHoldingPos = stod(params["maxHoldingPos"]);
+        maxHoldingPos = (int)(stod(params["maxHoldingPos"]) / lotSz);
     }
 }
 
@@ -1531,13 +1531,13 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                     ordit->second->priorQuantity = 0;
                 }
             }
-            double execSzAll = currentSz - orgSz;
+            int execSzAll = (currentSz - orgSz) / lotSz;
             while (execSzAll > 0)
             {
                 ord = currentbk->second->getTopOrder(ordSide);
                 if (ord)
                 {
-                    double execSz = execSzAll;
+                    int execSz = execSzAll;
                     if (execSz > ord->openSz)
                     {
                         execSz = ord->openSz;
@@ -1566,13 +1566,13 @@ void OKExInstrument::checkExecution(std::map<int, book*>::iterator currentbk, OK
                 ordit->second->priorQuantity = 0;
             }
         }
-        double execSzAll = currentbk->second->sz - orgSz;
+        int execSzAll = (currentbk->second->sz - orgSz) / lotSz;
         while (execSzAll > 0)
         {
             ord = currentbk->second->getTopOrder(ordSide);
             if (ord)
             {
-                double execSz = execSzAll;
+                int execSz = execSzAll;
                 if (execSz > ord->openSz)
                 {
                     execSz = ord->openSz;
@@ -1607,12 +1607,13 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
     if (ordit != liveOrdList->end())
     {
         bk = books->find((int)(ordit->second->px * priceUnit));
-        if (dtord->fillSz > 0)//Execution
+        int fill = (int)(dtord->fillSz / lotSz);
+        if (fill > 0)//Execution
         {
             ordit->second->ordId = dtord->ordId;
-            ordit->second->lastSz = dtord->fillSz;
-            ordit->second->execSz += dtord->fillSz;
-            ordit->second->openSz -= dtord->fillSz;
+            ordit->second->lastSz = fill;
+            ordit->second->execSz += fill;
+            ordit->second->openSz -= fill;
             ordit->second->lastPx = dtord->px;
             ordit->second->avgPx = dtord->avgPx;
             switch (ordit->second->status)
@@ -1620,9 +1621,8 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
             case OKExEnums::orderState::_WAIT_NEW:
             case OKExEnums::orderState::_WAIT_AMD:
             case OKExEnums::orderState::_WAIT_CAN:
-                if ((int)round(ordit->second->openSz / lotSz) < 1)
+                if (ordit->second->openSz == 0)
                 {
-                    ordit->second->openSz = 0;
                     ordit->second->execSz = ordit->second->sz;
                     ordit->second->status = OKExEnums::orderState::_FILLED;
                     ordit->second->live = false;
@@ -1630,11 +1630,11 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
 
                 break;
             default:
-                if ((int)round(ordit->second->openSz / lotSz) < 1)
+                if (ordit->second->openSz == 0)
                 {
-                    ordit->second->openSz = 0;
                     ordit->second->execSz = ordit->second->sz;
                     ordit->second->status = OKExEnums::orderState::_FILLED;
+                    ordit->second->live = false;
                 }
                 else
                 {
@@ -1645,18 +1645,18 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
             if (dtord->side == OKExEnums::side::_BUY)
             {
                 ++tradedCntBuy;
-                tradedQtyBuy += dtord->fillSz;
-                tradedAmtBuy += dtord->fillSz * dtord->fillPx;
-                intradayExeAmtBuy += dtord->fillSz * dtord->fillPx;
-                netPosition += dtord->fillSz;
+                tradedQtyBuy += fill;
+                tradedAmtBuy += fill * dtord->fillPx;
+                intradayExeAmtBuy += fill * dtord->fillPx;
+                netPosition += fill;
             }
             else if (dtord->side == OKExEnums::side::_SELL)
             {
                 ++tradedCntSell;
-                tradedQtySell += dtord->fillSz;
-                tradedAmtSell += dtord->fillSz * dtord->fillPx;
-                intradayExeAmtSell += dtord->fillSz * dtord->fillPx;
-                netPosition -= dtord->fillSz;
+                tradedQtySell += fill;
+                tradedAmtSell += fill * dtord->fillPx;
+                intradayExeAmtSell += fill * dtord->fillPx;
+                netPosition -= fill;
             }
         }
         else
@@ -1689,9 +1689,8 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
                 case OKExEnums::orderState::_WAIT_AMD:
                     ordit->second->ordId = dtord->ordId;
                     ordit->second->openSz = ordit->second->newSz - ordit->second->execSz;
-                    if (ordit->second->openSz < lotSz)
+                    if (ordit->second->openSz == 0)
                     {
-                        ordit->second->openSz = 0;
                         ordit->second->sz = ordit->second->execSz;
                         if (ordit->second->execSz > 0)
                         {
@@ -1914,8 +1913,8 @@ std::string OKExInstrument::outputDailyResult(void)
     }
     calcMid();
 
-    posPL = prevNetPos * (mid - baseMid);
-    tradePL = (tradedAmtSell - tradedQtySell * mid) + (tradedQtyBuy * mid - tradedAmtBuy);
+    posPL = (double)prevNetPos * (mid - baseMid) * lotSz;
+    tradePL = (tradedAmtSell - (double)tradedQtySell * mid) + ((double)tradedQtyBuy * mid - tradedAmtBuy) * lotSz;
     totalPL = posPL + tradePL;
 
     return instId + "," + std::to_string(open) + "," + std::to_string(high) + "," + std::to_string(low) + "," + std::to_string(last) + ","

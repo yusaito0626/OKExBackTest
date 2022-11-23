@@ -34,14 +34,14 @@ public:
 	void setNewDate(void);
 
 	//Put same parameters as live
-	OKExOrder* sendNewOrder(long long _tm,std::string instId,OKExEnums::tradeMode tdMode,OKExEnums::side side, double px, double sz,OKExEnums::ordType ordtype, std::string& msg);
-	OKExOrder* sendModOrder(long long _tm, std::string instId, std::string ordId,double newPx,double newSz, std::string& msg);
+	OKExOrder* sendNewOrder(long long _tm,std::string instId,OKExEnums::tradeMode tdMode,OKExEnums::side side, double px, int sz,OKExEnums::ordType ordtype, std::string& msg);
+	OKExOrder* sendModOrder(long long _tm, std::string instId, std::string ordId,double newPx,int newSz, std::string& msg);
 	OKExOrder* sendCanOrder(long long _tm, std::string instId, std::string ordId,std::string& msg);
 
 	void checkWaitingOrdQueue(long long _tm);
 	dataOrder* createAckTicket(long long _tm, ordTicket* tkt);
 	dataOrder* checkExecution(OKExInstrument* ins, dataOrder* ack);
-	dataOrder* execute(long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg);
+	dataOrder* execute(long long _tm, std::string instId, OKExOrder* ord, int sz, double px, std::string msg);
 
 	void endOfDayReset(void);
 
@@ -58,7 +58,7 @@ public:
 	LockFreeQueue::SISOQueue<ordTicket*>* ordTktQueue;
 	LockFreeQueue::SISOQueue<dataOrder*>* ackQueue;
 
-	boost::function<dataOrder* (long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)> exeFunc;
+	boost::function<dataOrder* (long long _tm, std::string instId, OKExOrder* ord, int sz, double px, std::string msg)> exeFunc;
 
 	static VirtualOMS* getInstance(void)
 	{

@@ -250,8 +250,8 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
 
 
     //Trade Summary
-    ui->lblSellQty->setText(QString("%L1").arg(ins->tradedQtySell, 0, 'f', 5));
-    ui->lblBuyQty->setText(QString("%L1").arg(ins->tradedQtyBuy, 0, 'f', 5));
+    ui->lblSellQty->setText(QString("%L1").arg((double)ins->tradedQtySell * ins->lotSz, 0, 'f', 5));
+    ui->lblBuyQty->setText(QString("%L1").arg((double)ins->tradedQtyBuy * ins->lotSz, 0, 'f', 5));
     if (ins->tradedQtySell > 0)
     {
         ui->lblSellPr->setText(QString("%L1").arg(ins->tradedAmtSell / ins->tradedQtySell, 0, 'f', ins->displayDigits + 1));
@@ -268,13 +268,13 @@ void MainWindow::UpdateInsInfo(OKExInstrument* ins)
     {
         ui->lblBuyPr->setText(QString("%L1").arg(0, 0, 'f', ins->displayDigits + 1));
     }
-    ui->lblNetPos->setText(QString("%L1").arg(ins->netPosition, 0, 'f', 5));
-    ui->lblPrevDayPos->setText(QString("%L1").arg(ins->prevNetPos, 0, 'f', 5));
+    ui->lblNetPos->setText(QString("%L1").arg((double)ins->netPosition * ins->lotSz, 0, 'f', 5));
+    ui->lblPrevDayPos->setText(QString("%L1").arg(ins->prevNetPos * ins->lotSz, 0, 'f', 5));
     
     
     //PL
-    ins->tradePL = (ins->tradedAmtSell - ins->tradedQtySell * ins->mid) + (ins->tradedQtyBuy * ins->mid - ins->tradedAmtBuy);
-    ins->posPL = ins->prevNetPos * (ins->mid - ins->baseMid);
+    ins->tradePL = (ins->tradedAmtSell - ins->tradedQtySell * ins->mid) + (ins->tradedQtyBuy * ins->mid - ins->tradedAmtBuy) * ins->lotSz;
+    ins->posPL = (double)ins->prevNetPos * (ins->mid - ins->baseMid) * ins->lotSz;
     ins->totalPL = ins->tradePL + ins->posPL;
     ui->lblTradePL->setText(QString("%L1").arg(ins->tradePL, 0, 'f', 2));
     ui->lblPosPL->setText(QString("%L1").arg(ins->posPL, 0, 'f', 2));

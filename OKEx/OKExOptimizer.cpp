@@ -114,7 +114,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		if(ins->swapBidPr > 0)//Buy Order
 		{
 			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate - ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
-			double sz = ins->unitSz;
+			int sz = ins->unitSz;
 			if (ins->netPosition + sz > ins->maxHoldingPos)
 			{
 				sz = ins->maxHoldingPos - ins->netPosition;
@@ -129,7 +129,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			}
 			if (!ins->bidOrd)
 			{
-				if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+				if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 				{
 					ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 					if (ins->bidOrd)
@@ -142,7 +142,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			{
 				if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
 				{
-					if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+					if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 					{
 						ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 						if (ins->bidOrd)
@@ -171,7 +171,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		if (ins->swapAskPr > 0)//Sell Order
 		{
 			double targetPr = ceil(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate + ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
-			double sz = ins->unitSz;
+			int sz = ins->unitSz;
 			if (ins->netPosition + sz > ins->maxHoldingPos)
 			{
 				sz = ins->maxHoldingPos - ins->netPosition;
@@ -186,7 +186,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			}
 			if (!ins->askOrd)
 			{
-				if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+				if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 				{
 					ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 					if (ins->askOrd)
@@ -199,7 +199,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			{
 				if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
 				{
-					if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+					if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 					{
 						ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 						if (ins->askOrd)
@@ -231,7 +231,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		if (ins->swapBidPr > 0)//Open
 		{
 			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate - ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
-			double sz = ins->unitSz;
+			int sz = ins->unitSz;
 			if (ins->netPosition + sz > ins->maxHoldingPos)
 			{
 				sz = ins->maxHoldingPos - ins->netPosition;
@@ -246,7 +246,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			}
 			if (!ins->bidOrd)
 			{
-				if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+				if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 				{
 					ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 					if (ins->bidOrd)
@@ -259,7 +259,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			{
 				if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
 				{
-					if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+					if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 					{
 						ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 						if (ins->bidOrd)
@@ -289,7 +289,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		{
 			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
 			double targetPr = ceil(ins->swapAskPr - ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
-			double sz = ins->unitSz;
+			int sz = ins->unitSz;
 			if (sz > ins->netPosition)//Net Position is positive.
 			{
 				sz = ins->netPosition;
@@ -300,7 +300,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			}
 			if (!ins->askOrd)
 			{
-				if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+				if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 				{
 					ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 					if (ins->askOrd)
@@ -313,7 +313,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			{
 				if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
 				{
-					if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+					if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 					{
 						ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 						if (ins->askOrd)
@@ -345,7 +345,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		if (ins->swapAskPr > 0)//Open
 		{
 			double targetPr = floor(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate + ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
-			double sz = ins->unitSz;
+			int sz = ins->unitSz;
 			if ( - ins->netPosition + sz > ins->maxHoldingPos)
 			{
 				sz = ins->maxHoldingPos + ins->netPosition;
@@ -360,7 +360,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			}
 			if (!ins->askOrd)
 			{
-				if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+				if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 				{
 					ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 					if (ins->askOrd)
@@ -373,7 +373,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			{
 				if (ins->askOrd->status == OKExEnums::orderState::_CANCELED || ins->askOrd->status == OKExEnums::orderState::_FILLED)
 				{
-					if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+					if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 					{
 						ins->askOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_SELL, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 						if (ins->askOrd)
@@ -403,7 +403,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 		{
 			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
 			double targetPr = ceil(ins->swapBidPr + ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
-			double sz = ins->unitSz;
+			int sz = ins->unitSz;
 			if (sz > - ins->netPosition)//Net Position is negative.
 			{
 				sz = - ins->netPosition;
@@ -414,7 +414,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			}
 			if (!ins->bidOrd)
 			{
-				if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+				if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 				{
 					ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 					if (ins->bidOrd)
@@ -427,7 +427,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 			{
 				if (ins->bidOrd->status == OKExEnums::orderState::_CANCELED || ins->bidOrd->status == OKExEnums::orderState::_FILLED)
 				{
-					if ((int)round(sz / ins->lotSz) > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
+					if (sz > 0 && targetPr * ins->priceUnit >= ins->lowestBook && targetPr * ins->priceUnit <= ins->highestBook)
 					{
 						ins->bidOrd = voms->sendNewOrder(ins->ts, ins->instId, OKExEnums::tradeMode::_CROSS, OKExEnums::side::_BUY, targetPr, sz, OKExEnums::ordType::_LIMIT, msg);
 						if (ins->bidOrd)
@@ -457,6 +457,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 }
 void OKExOptimizer::arbExeTrigger(dataOrder* exec, OKExInstrument* ins)
 {
+	int fill = (int)(exec->fillSz / ins->lotSz);
 	if (ins->instType == OKExEnums::instType::_FUTURES)//Send Market Order of SWAP
 	{
 		std::string msg;
@@ -474,22 +475,21 @@ void OKExOptimizer::arbExeTrigger(dataOrder* exec, OKExInstrument* ins)
 		default:
 			break;
 		}
-		OKExOrder* newOrd = voms->sendNewOrder(ins->ts, pairFtr->instId, OKExEnums::tradeMode::_CROSS, side, 0, exec->fillSz, OKExEnums::ordType::_MARKET, msg);
+		OKExOrder* newOrd = voms->sendNewOrder(ins->ts, pairFtr->instId, OKExEnums::tradeMode::_CROSS, side, 0, fill, OKExEnums::ordType::_MARKET, msg);
 		newOrd->pairInstId = ins->instId;
 		newOrd->isUnwind = ord->isUnwind;
 		if (ord->isUnwind)
 		{
-			ins->FUTURESz -= exec->fillSz;
-			if ((int)round(ins->FUTURESz / ins->lotSz) < 1)
+			ins->FUTURESz -= fill;
+			if (ins->FUTURESz == 0)
 			{
-				ins->FUTURESz = 0;
 				ins->avgFUTUREPr = 0;
 			}
 		}
 		else
 		{
-			ins->avgFUTUREPr= (ins->avgFUTUREPr* ins->FUTURESz+ exec->fillPx * exec->fillSz) / (ins->FUTURESz + exec->fillSz);
-			ins->FUTURESz += exec->fillSz;
+			ins->avgFUTUREPr= (ins->avgFUTUREPr* ins->FUTURESz+ exec->fillPx * fill) / (ins->FUTURESz + fill);
+			ins->FUTURESz += fill;
 		}
 	}
 	else if (ins->instType == OKExEnums::instType::_SWAP)//Record Execution information to the future
@@ -498,17 +498,16 @@ void OKExOptimizer::arbExeTrigger(dataOrder* exec, OKExInstrument* ins)
 		OKExInstrument* pairFtr = insList->at(ord->pairInstId);
 		if (ord->isUnwind)
 		{
-			pairFtr->SWAPSz -= exec->fillSz;
-			if ((int)round(pairFtr->SWAPSz / pairFtr->lotSz) < 1)
+			pairFtr->SWAPSz -= fill;
+			if (pairFtr->SWAPSz == 0)
 			{
-				pairFtr->SWAPSz = 0;
 				pairFtr->avgSWAPPr = 0;
 			}
 		}
 		else
 		{
-			pairFtr->avgSWAPPr = (pairFtr->avgSWAPPr * pairFtr->SWAPSz + exec->fillPx * exec->fillSz) / (pairFtr->SWAPSz + exec->fillSz);
-			pairFtr->SWAPSz += exec->fillSz;
+			pairFtr->avgSWAPPr = (pairFtr->avgSWAPPr * pairFtr->SWAPSz + exec->fillPx * fill) / (pairFtr->SWAPSz + fill);
+			pairFtr->SWAPSz += fill;
 		}
 	}
 }

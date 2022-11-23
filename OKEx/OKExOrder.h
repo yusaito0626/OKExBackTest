@@ -16,13 +16,13 @@ public:
 	OKExEnums::orderState status;
 	OKExEnums::side side;
 	double px;
-	double sz;
-	double openSz;
-	double execSz;
+	int sz;
+	int openSz;
+	int execSz;
 	double execAmt;
 	double avgPx;
 	double lastPx;
-	double lastSz;
+	int lastSz;
 	double newPx;
 	double newSz;
 

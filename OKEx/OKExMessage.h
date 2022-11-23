@@ -152,7 +152,7 @@ struct ordTicket
     OKExEnums::side side;
     OKExEnums::posSide posSide;
     OKExEnums::ordType ordType;
-    double sz;
+    int sz;
     double px;
     bool reduceOnly;
     //Only Amend Orders

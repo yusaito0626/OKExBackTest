@@ -61,7 +61,7 @@ void VirtualOMS::setNewDate(void)
 	}
 }
 
-OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums::tradeMode tdMode, OKExEnums::side side, double px, double sz, OKExEnums::ordType ordtype, std::string& msg)
+OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums::tradeMode tdMode, OKExEnums::side side, double px, int sz, OKExEnums::ordType ordtype, std::string& msg)
 {
 	tm = _tm;
 	std::map<std::string, OKExInstrument*>::iterator itend = insList->end();
@@ -84,9 +84,9 @@ OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums
 		return nullptr;
 	}
 	
-	if ((int)round(sz / ins->lotSz) < 1 || (int)round(sz / ins->lotSz) >= (int)round(GlobalVariables::OKEx::maxOrdSize / ins->lotSz))//
+	if (sz <= 0 || sz >= (int)round(GlobalVariables::OKEx::maxOrdSize / ins->lotSz))//
 	{
-		msg = "Irregular size. sz" + std::to_string(sz);
+		msg = "Irregular size. sz" + std::to_string((double)sz * ins->lotSz);
 		return nullptr;
 	}
 	OKExOrder* ord = ordPool->pop();
@@ -129,7 +129,7 @@ OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums
 	tkt->ordType = ordtype;
 	tkt->px = px;
 	tkt->side = side;
-	tkt->sz = sz;
+	tkt->sz = (double)sz * ins->lotSz;
 	tkt->tdMode = tdMode;
 	tkt->tktType = OKExEnums::ticketType::_SEND_NEW;
 
@@ -139,7 +139,7 @@ OKExOrder* VirtualOMS::sendNewOrder(long long _tm, std::string instId, OKExEnums
 	ins->addNewOrder(ord);
 	return ord;
 }
-OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::string ordId, double newPx, double newSz, std::string& msg)
+OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::string ordId, double newPx, int newSz, std::string& msg)
 {
 	tm = _tm;
 	std::map<std::string, OKExInstrument*>::iterator itend = insList->end();
@@ -180,15 +180,12 @@ OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::stri
 		msg = "Unknown price. px:" + std::to_string(newPx);
 		return nullptr;
 	}
-	if (newSz < 0 || (int)round(newSz / ins->lotSz) >= (int)round(GlobalVariables::OKEx::maxOrdSize / ins->lotSz))//
+	if (newSz < 0 || newSz >= (int)round(GlobalVariables::OKEx::maxOrdSize / ins->lotSz))//
 	{
-		msg = "Irregular size. sz" + std::to_string(newSz);
+		msg = "Irregular size. sz" + std::to_string((double)newSz * ins->lotSz);
 		return nullptr;
 	}
-	else if ((int)round(newSz / ins->lotSz) < 1)
-	{
-		newSz = 0;
-	}
+
 	ordTicket* tkt = tktPool->pop();
 	if (!tkt)
 	{
@@ -212,7 +209,7 @@ OKExOrder* VirtualOMS::sendModOrder(long long _tm, std::string instId, std::stri
 	tkt->clOrdId = ord->baseOrdId;//Use clOrdId as baseOrdId
 	tkt->instId = instId;
 	tkt->px = newPx;
-	tkt->sz = newSz;
+	tkt->sz = (double)newSz * ins->lotSz;
 	tkt->tktType = OKExEnums::ticketType::_SEND_MOD;
 	ordTktQueue->Enqueue(tkt);
 	waitingOrderQueue->Enqueue(tkt);
@@ -377,7 +374,7 @@ dataOrder* VirtualOMS::createAckTicket(long long _tm, ordTicket* tkt)
 		dtord->sz = tkt->sz;
 		dtord->side = tkt->side;
 		dtord->posSide = tkt->posSide;
-		if (dtord->sz - objord->execSz > 0)
+		if ((int)(dtord->sz / ins->lotSz) - objord->execSz > 0)
 		{
 			dtord->state = OKExEnums::orderState::_PARTIALLY_FILLED;
 		}
@@ -432,6 +429,8 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 	std::string msg = "The order took the opposite books";
 	OKExOrder* ord = nullptr;
 	dataOrder* exec = nullptr;
+	int ackSz = (int)(ack->sz / ins->lotSz);
+	int bookSz = 0;
 	if (ack->px > 0)
 	{
 		switch (ack->side)
@@ -444,13 +443,14 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 			else if ((int)(ack->px * ins->priceUnit) == ins->bestAsk->first)
 			{
 				ord = ins->ordList->at(ack->clOrdId);
-				if (ack->sz - ord->execSz > ins->bestAsk->second->sz)
+				bookSz = (int)(ins->bestAsk->second->sz / ins->lotSz);
+				if (ackSz - ord->execSz > bookSz)
 				{
 					if (ack->tktType != OKExEnums::ticketType::_EXEC)
 					{
 						ins->updateOrders(ack);
 					}
-					exec = execute(tm, ins->instId, ord, ins->bestAsk->second->sz, ack->px, msg);
+					exec = execute(tm, ins->instId, ord, bookSz, ack->px, msg);
 				}
 				else
 				{
@@ -458,7 +458,7 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 					{
 						ins->updateOrders(ack);
 					}
-					exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+					exec = execute(tm, ins->instId, ord, ackSz - ord->execSz, ack->px, msg);
 				}
 			}
 			else
@@ -468,7 +468,7 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 				{
 					ins->updateOrders(ack);
 				}
-				exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+				exec = execute(tm, ins->instId, ord, ackSz - ord->execSz, ack->px, msg);
 			}
 			break;
 		case OKExEnums::side::_SELL:
@@ -479,13 +479,14 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 			else if ((int)(ack->px * ins->priceUnit) == ins->bestBid->first)
 			{
 				ord = ins->ordList->at(ack->clOrdId);
-				if (ack->sz - ord->execSz > ins->bestBid->second->sz)
+				bookSz = (int)(ins->bestBid->second->sz / ins->lotSz);
+				if (ackSz - ord->execSz > bookSz)
 				{
 					if (ack->tktType != OKExEnums::ticketType::_EXEC)
 					{
 						ins->updateOrders(ack);
 					}
-					exec = execute(tm, ins->instId, ord, ins->bestBid->second->sz, ack->px, msg);
+					exec = execute(tm, ins->instId, ord, bookSz, ack->px, msg);
 				}
 				else
 				{
@@ -493,14 +494,14 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 					{
 						ins->updateOrders(ack);
 					}
-					exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+					exec = execute(tm, ins->instId, ord, ackSz - ord->execSz, ack->px, msg);
 				}
 			}
 			else
 			{
 				ord = ins->ordList->at(ack->clOrdId);
 				ins->updateOrders(ack);
-				exec = execute(tm, ins->instId, ord, ack->sz - ord->execSz, ack->px, msg);
+				exec = execute(tm, ins->instId, ord, ackSz - ord->execSz, ack->px, msg);
 			}
 			break;
 		default:
@@ -512,21 +513,21 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 		std::map<int, book*>::iterator bk;
 		std::map<int, book*>::iterator bkend = ins->books->end();
 		std::map<int, book*>::iterator bkbegin = ins->books->begin();
-		double sz = ack->sz;
-		double exeSz = 0;
+		int sz = ackSz;
+		int exeSz = 0;
 		std::string msg;
 		ord = ins->ordList->at(ack->clOrdId);
 		switch (ack->side)
 		{
 		case OKExEnums::side::_BUY:
 			bk = ins->bestAsk;
-			while ((int)round(sz / ins->lotSz) >= 1)
+			while (sz > 0)
 			{
 				if (bk == bkend)
 				{
 					break;
 				}
-				exeSz = bk->second->sz;
+				exeSz = (int)(bk->second->sz / ins->lotSz);
 				if (exeSz > sz)
 				{
 					exeSz = sz;
@@ -538,13 +539,13 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 			break;
 		case OKExEnums::side::_SELL:
 			bk = ins->bestBid;
-			while ((int)round(sz / ins->lotSz) >= 1)
+			while (sz > 0)
 			{
 				if (bk == ins->books->end())
 				{
 					break;
 				}
-				exeSz = bk->second->sz;
+				exeSz = (int)(bk->second->sz / ins->lotSz);
 				if (exeSz > sz)
 				{
 					exeSz = sz;
@@ -569,7 +570,7 @@ dataOrder* VirtualOMS::checkExecution(OKExInstrument* ins, dataOrder* ack)
 	ins->checkWaitingExeQueue();
 	return exec;
 }
-dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord, double sz, double px, std::string msg)
+dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord, int sz, double px, std::string msg)
 {
 	_tm = tm;
 	OKExInstrument* ins = insList->at(instId);
@@ -604,7 +605,7 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 	exec->ordId = getOrdId(instId);
 	exec->side = ord->side;
 	exec->fillPx = px;
-	exec->fillSz = sz;
+	exec->fillSz = (double)sz * ins->lotSz;
 	exec->fillTime = tm;
 	exec->uTime = tm;
 	exec->msg = msg;

@@ -111,7 +111,7 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 	}
 	if (ins->netPosition == 0)//Open Orders
 	{
-		if(ins->swapBidPr > 0)//Buy Order
+		if(ins->swapBidPr > 0 && ins->bestBid != ins->books->end())//Buy Order
 		{
 			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate - ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			int sz = ins->unitSz;
@@ -168,7 +168,11 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 				}
 			}
 		}
-		if (ins->swapAskPr > 0)//Sell Order
+		else if (ins->bidOrd)
+		{
+			voms->sendCanOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, msg);
+		}
+		if (ins->swapAskPr > 0 && ins->bestAsk != ins->books->end())//Sell Order
 		{
 			double targetPr = ceil(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate + ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			int sz = ins->unitSz;
@@ -225,10 +229,14 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 				}
 			}
 		}
+		else if (ins->askOrd)
+		{
+			voms->sendCanOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, msg);
+		}
 	}
 	else if (ins->netPosition > 0)//Open Future:Buy SWAP:Sell, Unwind Future:Sell SWAP:Buy
 	{
-		if (ins->swapBidPr > 0)//Open
+		if (ins->swapBidPr > 0 && ins->bestBid != ins->books->end())//Open
 		{
 			double targetPr = floor(ins->swapBidPr * (1 - ins->remainingDays / 365 * ins->targetRate - ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			int sz = ins->unitSz;
@@ -285,7 +293,11 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 				}
 			}
 		}
-		if (ins->swapAskPr > 0)//Unwind
+		else if (ins->bidOrd)
+		{
+			voms->sendCanOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, msg);
+		}
+		if (ins->swapAskPr > 0 && ins->bestAsk != ins->books->end())//Unwind
 		{
 			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
 			double targetPr = ceil(ins->swapAskPr - ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
@@ -339,10 +351,14 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 				}
 			}
 		}
+		else if (ins->askOrd)
+		{
+			voms->sendCanOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, msg);
+		}
 	}
 	else if (ins->netPosition < 0)//Open Future:Sell SWAP:Buy, Unwind Future:Buy SWAP:Sell
 	{
-		if (ins->swapAskPr > 0)//Open
+		if (ins->swapAskPr > 0 && ins->bestAsk != ins->books->end())//Open
 		{
 			double targetPr = floor(ins->swapAskPr * (1 + ins->remainingDays / 365 * ins->targetRate + ins->transactionFee) * ins->priceUnit) / ins->priceUnit;
 			int sz = ins->unitSz;
@@ -399,7 +415,11 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 				}
 			}
 		}
-		if (ins->swapBidPr > 0)//Unwind
+		else if (ins->askOrd)
+		{
+			voms->sendCanOrder(ins->ts, ins->instId, ins->askOrd->baseOrdId, msg);
+		}
+		if (ins->swapBidPr > 0 && ins->bestBid != ins->books->end())//Unwind
 		{
 			ins->targetUnwindDiff = ins->currentPosDiff * ins->unwindingRatio;
 			double targetPr = ceil(ins->swapBidPr + ins->targetUnwindDiff * ins->priceUnit) / ins->priceUnit;
@@ -452,6 +472,10 @@ void OKExOptimizer::arb(OKExInstrument* ins)
 					}
 				}
 			}
+		}
+		else if (ins->bidOrd)
+		{
+			voms->sendCanOrder(ins->ts, ins->instId, ins->bidOrd->baseOrdId, msg);
 		}
 	}
 }

@@ -157,7 +157,7 @@ OKExOrder* book::getTopOrder(OKExEnums::side sd)
     OKExOrder* ord = nullptr;
     for (it = liveOrders->begin(); it != itend; ++it)
     {
-        if (it->second->side == sd)
+        if (it->second->side == sd && it->second->live)
         {
             if (ts == 0)
             {
@@ -1757,7 +1757,7 @@ void OKExInstrument::updateOrders(dataOrder* dtord)
         }
         if ((ordit->second->status == OKExEnums::orderState::_CANCELED || ordit->second->status == OKExEnums::orderState::_FILLED))
         {
-            if (ordit->second->status == OKExEnums::orderState::_FILLED && ordit->second->live)
+            if (ordit->second->status == OKExEnums::orderState::_FILLED)
             {
                 switch (ordit->second->side)
                 {

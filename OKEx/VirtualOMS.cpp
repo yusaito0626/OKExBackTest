@@ -616,6 +616,7 @@ dataOrder* VirtualOMS::execute(long long _tm, std::string instId, OKExOrder* ord
 	else
 	{
 		exec->state = OKExEnums::orderState::_FILLED;
+		ord->live = false;
 	}
 	ackQueue->Enqueue(exec);
 	ins->waitingExeQueue->Enqueue(exec);
@@ -627,6 +628,7 @@ void VirtualOMS::endOfDayReset(void)
 	std::ofstream ordFile = std::ofstream(outputFilePath + "\\order_" + GlobalVariables::OKEx::suffix + GlobalVariables::OKEx::today.strday + ".csv");
 	std::ofstream tktFile = std::ofstream(outputFilePath + "\\ticket_" + GlobalVariables::OKEx::suffix + GlobalVariables::OKEx::today.strday + ".csv");
 	std::ofstream ackFile = std::ofstream(outputFilePath + "\\ack_" + GlobalVariables::OKEx::suffix + GlobalVariables::OKEx::today.strday + ".csv");
+	std::ofstream exeFile = std::ofstream(outputFilePath + "\\exe_" + GlobalVariables::OKEx::suffix + GlobalVariables::OKEx::today.strday + ".csv");
 
 	OKExOrder* ord;
 	ordTicket* tkt;
@@ -659,6 +661,10 @@ void VirtualOMS::endOfDayReset(void)
 		ack = ackQueue->Dequeue();
 		ackFile << ack->toString() << std::endl;
 		ackFile.flush();
+		if (ack->fillSz > 0)
+		{
+			exeFile << ack->toString() << std::endl;
+		}
 		ack->init();
 		execPool->push(ack);
 	}

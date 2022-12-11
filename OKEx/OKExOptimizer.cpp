@@ -665,18 +665,20 @@ double OKExOptimizer::calcBookImbalance(OKExInstrument* ins)
 		if (bid != bookend)
 		{
 			bidsum += bid->second->sz * exp(-log((double)ins->bestBid->first / (double)bid->first) * ins->BIDecayingParam);
+			if (bid == bookbegin)
+			{
+				bid = bookend;
+			}
+			else
+			{
+				--bid;
+			}
 		}
-		if (bid == bookbegin)
-		{
-			bid = bookend;
-		}
-		else
-		{
-			--bid;
-		}
+
 		if (ask != bookend)
 		{
 			asksum += ask->second->sz * exp(-log((double)ask->first / (double)ins->bestAsk->first) * ins->BIDecayingParam);
+			++ask;
 		}
 		++i;
 	}

@@ -231,7 +231,7 @@ bool OKExFeedFileReader::reflectOneMsg(OKExMktMsg* msg)
 			if (msg->args->at("action") == "snapshot")
 			{
 				bool prevIsTrading = ins->second->isTrading;
-				ins->second->isTrading = ins->second->initializeBooks(msg, 1000);
+				ins->second->isTrading = ins->second->initializeBooks(msg, 5000);
 				if (ins->second->isTrading)
 				{
 					if (!prevIsTrading)

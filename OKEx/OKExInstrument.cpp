@@ -756,6 +756,10 @@ void OKExInstrument::setParams(std::map<std::string, std::string> params)
     {
         maxHoldingPos = (int)(stod(params["maxHoldingPos"]) / lotSz);
     }
+    if (params.find("bookDepth") != itend)
+    {
+        bookDepth = stoi(params["bookDepth"]);
+    }
 }
 
 void OKExInstrument::updateTrade(OKExMktMsg* msg)
@@ -831,7 +835,7 @@ bool OKExInstrument::initializeBooks(OKExMktMsg* msg, int depth)
 {
     PoolingStack::PoolingStack<book*> bookPool;
     book* bk;
-    bookDepth = depth;
+    //bookDepth = depth;
     int tick = (int)(tickSz * priceUnit);
 
     if (books->size() > 0)
